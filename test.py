@@ -23,15 +23,27 @@ print('Time to initialize CBF:', time.time() - tnow)
 x = torch.tensor([0.0, 0.0, 0.0], device=device).to(torch.float32)
 xf = torch.tensor([0.35, 0.09, 0.0], device=device).to(torch.float32)
 
-u_des = 0.01*(xf - x)
+u_des = 0.1*(xf - x)
 
 traj = [x]
 
 for i in range(10000):
     tnow = time.time()
     u = cbf.solve_QP(x, u_des)
-    x = 0.01*u + x
+    x = 0.1*u + x
     traj.append(x)
     print('Time to solve CBF QP:', time.time() - tnow)
 
+#%%
 traj = torch.stack(traj)
+
+#%% Save trajectory
+import json
+
+data = {
+    'traj': traj.cpu().numpy().tolist()
+}
+
+with open('traj.json', 'w') as f:
+    json.dump(data, f, indent=4)
+# %%

@@ -28,7 +28,7 @@ class CBF():
         grad_h_f = torch.sum(grad_h * f[None], dim=-1).squeeze()
         grad_h_g = torch.matmul(grad_h, g[None]).squeeze()
 
-        alpha_h = self.alpha(h)
+        alpha_h = self.alpha(h-1)
 
         A = grad_h_g
         b = -alpha_h - grad_h_f - A @ u_des
@@ -68,9 +68,9 @@ class CBF():
         A = sparse.csc_matrix(A)
 
         if self.times_solved == 0:
-            self.prob.setup(P=P, A=A, u=b)
+            self.prob.setup(P=P, A=A, l=b)
         else:
-            self.prob.update(Ax=A.data, u=b)
+            self.prob.update(Ax=A.data, l=b)
         self.times_solved += 1
 
         # Solve
