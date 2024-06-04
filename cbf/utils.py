@@ -14,6 +14,7 @@ class CBF():
         self.gsplat = gsplat
         self.dynamics = dynamics
         self.alpha = alpha
+        self.beta = alpha
         self.rel_deg = dynamics.rel_deg
 
         # Create an OSQP object
@@ -25,33 +26,77 @@ class CBF():
         # Computes the A and b matrices for the QP A u <= b
         h, grad_h, hes_h = self.gsplat.query_distance(x)       # can pass in an optional argument for a radius
 
+
+        # h is 1 x 1, grad_h is 1 x 3, hes_h is 3 x 3
+
+        # we need h to be 1x1, grad_h to be 1x6, hes_h to be 6x6
+        # add zeros to the right of grad_h
+        grad_h = torch.cat((grad_h, torch.zeros(1, 3).to(grad_h.device)), dim=-1)
+
+        # add zeros to the right of hes_h
+        hes_h = torch.cat((hes_h, torch.zeros(3, 3).to(hes_h.device)), dim=-1)
+
+
+
+        f, g, df = self.dynamics.system(x)
+
+        # f is 6x1, g is 6x1, df is 6x6
+
+        # Extended barrier function
+        lfh = torch.matmul(grad_h, f[None]).squeeze()
+
+
+
+        # lgh = torch.matmul(grad_h, g[None]).squeeze() # this is equal to 0
+
+        # Compute the Lie derivatives of the Lie derivatives
+        # lflfh is (d2h/dx2 * f(x) + dh/dx * df/dx) * f(x)
+        # lglfh is (d2h/dx2 * f(x) + dh/dx * df/dx) * g(x)
+
+        # need to check below
+
+        lflfh = torch.matmul(torch.matmul(hes_h, f.unsqueeze(-1)), f.unsqueeze(0)).squeeze() + torch.matmul(grad_h, torch.matmul(df, f.unsqueeze(-1))).squeeze()
+        lglfh = torch.matmul(torch.matmul(hes_h, f.unsqueeze(-1)), g.unsqueeze(0)).squeeze() + torch.matmul(grad_h, torch.matmul(df, g.unsqueeze(-1))).squeeze()
+
+
+        # our full constraint is
+        # lflfh + lglfh * u + alpha(lfh) + beta(lfh + alpha(h)) <= 0
+
+        l = -lflfh - self.alpha(lfh) - self.beta(lfh + self.alpha(h))
+        A = lglfh[None]  # 1 x 6
+
+        P = torch.eye(3).to(grad_h.device)
+        qt = torch.tensor(u_des).to(grad_h.device)
+
+        # grad_h_f = torch.sum(grad_h * f[None], dim=-1).squeeze()
+        # grad_h_g = torch.matmul(grad_h, g[None]).squeeze()
+
+        # alpha_h = self.alpha(h-1)
+
         
-        f, g = self.dynamics.system(x)
+        # b = -alpha_h - grad_h_f - A @ u_des
 
-        grad_h_f = torch.sum(grad_h * f[None], dim=-1).squeeze()
-        grad_h_g = torch.matmul(grad_h, g[None]).squeeze()
+        # if A.dim() == 1:
+        #     A = A[None]
+        # # We want to solve for a minimal set of constraints in the Polytope
+        # # First, normalize
+        # Anorm = torch.norm(A, dim=1)
+        # A = A / Anorm[:, None]
+        # b = b / Anorm
 
-        alpha_h = self.alpha(h-1)
-
-        A = grad_h_g
-        b = -alpha_h - grad_h_f - A @ u_des
-
-        if A.dim() == 1:
-            A = A[None]
-        # We want to solve for a minimal set of constraints in the Polytope
-        # First, normalize
-        Anorm = torch.norm(A, dim=1)
-        A = A / Anorm[:, None]
-        b = b / Anorm
+        # A = A.cpu().numpy()
+        # b = b.cpu().numpy()
+        # if minimal:
+        #     # Need to pass in an interior point to the polytope
+        #     pt = find_interior(A, b)
+        #     A, b = h_rep_minimal(A, b, pt)
 
         A = A.cpu().numpy()
-        b = b.cpu().numpy()
-        if minimal:
-            # Need to pass in an interior point to the polytope
-            pt = find_interior(A, b)
-            A, b = h_rep_minimal(A, b, pt)
+        l = l.cpu().numpy()
+        P = P.cpu().numpy()
+        qt = qt.cpu().numpy()
 
-        return A, b
+        return A, l, P, qt
 
     def solve_QP(self, x, u_des):
         A, b = self.get_QP_matrices(x, u_des, minimal=False)

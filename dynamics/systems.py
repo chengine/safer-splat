@@ -38,5 +38,9 @@ class DoubleIntegrator():
         g = torch.zeros(2*self.ndim, self.ndim).to(self.device)
         g[self.ndim:, :] = torch.eye(self.ndim).to(self.device)
 
-        return f, g
+        # A matrix (df/dx)
+        A = torch.zeros(2*self.ndim, 2*self.ndim).to(self.device)
+        A[:self.ndim, self.ndim:] = torch.eye(self.ndim).to(self.device)
+
+        return f, g, A
 
