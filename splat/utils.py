@@ -24,8 +24,10 @@ def batch_mahalanobis_distance(x, means, covs):
     diff = x - means
     mahalanobis = torch.einsum('bm,bmn,bn->b', diff, covs, diff)
     grad = 2 * torch.bmm(covs, diff[..., None]).squeeze()
+    hessian = 2 * covs
 
-    return mahalanobis, grad
+
+    return mahalanobis, grad, hessian
 
 class GSplat():
     def __init__(self, filepath, device, kdtree=False):

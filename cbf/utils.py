@@ -14,6 +14,7 @@ class CBF():
         self.gsplat = gsplat
         self.dynamics = dynamics
         self.alpha = alpha
+        self.rel_deg = dynamics.rel_deg
 
         # Create an OSQP object
         self.prob = osqp.OSQP()
@@ -22,7 +23,9 @@ class CBF():
 
     def get_QP_matrices(self, x, u_des, minimal=True):
         # Computes the A and b matrices for the QP A u <= b
-        h, grad_h = self.gsplat.query_distance(x)       # can pass in an optional argument for a radius
+        h, grad_h, hes_h = self.gsplat.query_distance(x)       # can pass in an optional argument for a radius
+
+        
         f, g = self.dynamics.system(x)
 
         grad_h_f = torch.sum(grad_h * f[None], dim=-1).squeeze()
