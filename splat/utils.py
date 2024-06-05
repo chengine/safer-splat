@@ -1,7 +1,7 @@
 import json
 import torch
 import numpy as np
-import open3d as o3d
+# import open3d as o3d
 from downsampling.utils import mvee, mvee_batched, outer_ellipsoid
 from ellipsoids.utils import fibonacci_ellipsoid, rot_z, create_gs_mesh
 from ellipsoids.plots import plot_ellipse
@@ -9,6 +9,9 @@ from ellipsoids.gs_utils import quaternion_to_rotation_matrix
 import open3d as o3d
 from scipy.spatial import KDTree
 from ellipsoids.gs_utils import compute_cov
+from tqdm import tqdm
+import time
+
 
 def batch_mahalanobis_distance(x, means, covs):
     # Computes the Mahalanobis distance of a batch of points x to a batch of Gaussians with means and covariances.
@@ -38,23 +41,61 @@ class GSplat():
         if kdtree:
             self.kdtree = KDTree(self.means.cpu().numpy())
 
+    # def load_gsplat(self, filepath, normalized=False):
+    #     with open(filepath, 'r') as f:
+    #         data = json.load(f)
+
+    #     self.means = torch.tensor(data['means']).to(dtype=torch.float32, device=self.device)
+    #     self.rots = torch.tensor(data['rotations']).to(dtype=torch.float32, device=self.device)
+    #     self.colors = torch.tensor(data['colors']).to(dtype=torch.float32, device=self.device)
+
+    #     if normalized:
+    #         self.opacities = torch.tensor(data['opacities']).to(dtype=torch.float32, device=self.device)
+    #         self.scales = torch.tensor(data['scalings']).to(dtype=torch.float32, device=self.device)
+    #     else:
+    #         self.opacities = torch.sigmoid(torch.tensor(data['opacities']).to(dtype=torch.float32, device=self.device))
+    #         self.scales = torch.exp(torch.tensor(data['scalings']).to(dtype=torch.float32, device=self.device))
+
+    #     # Computes Sigma inverse
+    #     self.cov_inv = compute_cov(self.rots, 1/self.scales)
+            
     def load_gsplat(self, filepath, normalized=False):
         with open(filepath, 'r') as f:
             data = json.load(f)
+        
+        keys = ['means', 'rotations', 'colors', 'opacities', 'scalings']
+        tensors = {}
 
-        self.means = torch.tensor(data['means']).to(dtype=torch.float32, device=self.device)
-        self.rots = torch.tensor(data['rotations']).to(dtype=torch.float32, device=self.device)
-        self.colors = torch.tensor(data['colors']).to(dtype=torch.float32, device=self.device)
+        # Measure time for loading tensors
+        start_time = time.time()
+        for key in keys:
+            tensors[key] = torch.tensor(data[key]).to(dtype=torch.float32, device=self.device)
+        print(f"Loading tensors took {time.time() - start_time:.4f} seconds")
+        
+        # Measure time for setting attributes
+        start_time = time.time()
+        self.means = tensors['means']
+        self.rots = tensors['rotations']
+        self.colors = tensors['colors']
+        self.opacities = tensors['opacities']
+        self.scales = tensors['scalings']
+        print(f"Setting attributes took {time.time() - start_time:.4f} seconds")
 
-        if normalized:
-            self.opacities = torch.tensor(data['opacities']).to(dtype=torch.float32, device=self.device)
-            self.scales = torch.tensor(data['scalings']).to(dtype=torch.float32, device=self.device)
-        else:
-            self.opacities = torch.sigmoid(torch.tensor(data['opacities']).to(dtype=torch.float32, device=self.device))
-            self.scales = torch.exp(torch.tensor(data['scalings']).to(dtype=torch.float32, device=self.device))
+        # Print tensor sizes
+        print(f"Opacities tensor size: {self.opacities.size()}")
+        print(f"Scales tensor size: {self.scales.size()}")
 
-        # Computes Sigma inverse
-        self.cov_inv = compute_cov(self.rots, 1/self.scales)
+        # Measure time for normalization
+        if not normalized:
+            start_time = time.time()
+            self.opacities = torch.sigmoid(self.opacities)
+            self.scales = torch.exp(self.scales)
+            print(f"Normalization took {time.time() - start_time:.4f} seconds")
+
+        # Measure time for computing Sigma inverse
+        start_time = time.time()
+        self.cov_inv = compute_cov(self.rots, 1 / self.scales)
+        print(f"Computing Sigma inverse took {time.time() - start_time:.4f} seconds")
 
     def save_mesh(self, filepath):
         scene = create_gs_mesh(self.means.cpu().numpy(), quaternion_to_rotation_matrix(self.rots).cpu().numpy(), self.scales.cpu().numpy(), self.colors.cpu().numpy(), res=4, transform=None, scale=None)

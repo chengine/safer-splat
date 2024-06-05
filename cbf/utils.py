@@ -1,9 +1,7 @@
 import torch
-from ellipsoids.math_utils import h_rep_minimal, find_interior
 import osqp
 import numpy as np
 from scipy import sparse
-import cvxpy as cvx
 
 class CBF():
     def __init__(self, gsplat, dynamics, alpha):
@@ -26,28 +24,15 @@ class CBF():
         # Computes the A and b matrices for the QP A u <= b
         h, grad_h, hes_h = self.gsplat.query_distance(x)       # can pass in an optional argument for a radius
 
-
-        # h is 1 x 1, grad_h is 1 x 3, hes_h is 3 x 3
-
-        # we need h to be 1x1, grad_h to be 1x6, hes_h to be 6x6
-        # add zeros to the right of grad_h
-        grad_h = torch.cat((grad_h, torch.zeros(1, 3).to(grad_h.device)), dim=-1)
-
-        # add zeros to the right of hes_h
-        hes_h = torch.cat((hes_h, torch.zeros(3, 3).to(hes_h.device)), dim=-1)
-
-
-
         f, g, df = self.dynamics.system(x)
 
+        f = f.unsqueeze(-1)
         # f is 6x1, g is 6x1, df is 6x6
 
         # Extended barrier function
-        lfh = torch.matmul(grad_h, f[None]).squeeze()
+        lfh = torch.matmul(grad_h, f).squeeze()
 
 
-
-        # lgh = torch.matmul(grad_h, g[None]).squeeze() # this is equal to 0
 
         # Compute the Lie derivatives of the Lie derivatives
         # lflfh is (d2h/dx2 * f(x) + dh/dx * df/dx) * f(x)
@@ -55,26 +40,17 @@ class CBF():
 
         # need to check below
 
-        lflfh = torch.matmul(torch.matmul(hes_h, f.unsqueeze(-1)), f.unsqueeze(0)).squeeze() + torch.matmul(grad_h, torch.matmul(df, f.unsqueeze(-1))).squeeze()
-        lglfh = torch.matmul(torch.matmul(hes_h, f.unsqueeze(-1)), g.unsqueeze(0)).squeeze() + torch.matmul(grad_h, torch.matmul(df, g.unsqueeze(-1))).squeeze()
-
+        lflfh = torch.matmul(f.T, torch.matmul(hes_h, f)).squeeze() + torch.matmul(grad_h, torch.matmul(df, f)).squeeze()
+        lglfh = torch.matmul(g.T, torch.matmul(hes_h, f)).squeeze() + torch.matmul(grad_h, torch.matmul(df, g)).squeeze()
 
         # our full constraint is
         # lflfh + lglfh * u + alpha(lfh) + beta(lfh + alpha(h)) <= 0
 
-        l = -lflfh - self.alpha(lfh) - self.beta(lfh + self.alpha(h))
+        l = -lflfh - self.alpha(lfh) - self.beta(lfh + self.alpha(h.squeeze()))
         A = lglfh[None]  # 1 x 6
 
         P = torch.eye(3).to(grad_h.device)
         qt = torch.tensor(u_des).to(grad_h.device)
-
-        # grad_h_f = torch.sum(grad_h * f[None], dim=-1).squeeze()
-        # grad_h_g = torch.matmul(grad_h, g[None]).squeeze()
-
-        # alpha_h = self.alpha(h-1)
-
-        
-        # b = -alpha_h - grad_h_f - A @ u_des
 
         # if A.dim() == 1:
         #     A = A[None]
@@ -91,24 +67,24 @@ class CBF():
         #     pt = find_interior(A, b)
         #     A, b = h_rep_minimal(A, b, pt)
 
-        A = A.cpu().numpy()
+        A = A.cpu().numpy().squeeze()
         l = l.cpu().numpy()
-        P = P.cpu().numpy()
         qt = qt.cpu().numpy()
 
-        return A, l, P, qt
+        return A, l
 
     def solve_QP(self, x, u_des):
-        A, b = self.get_QP_matrices(x, u_des, minimal=False)
+        A, l = self.get_QP_matrices(x, u_des, minimal=False)
         
-        p = self.optimize_QP(A, b)       # Need to fill this out
+        q = u_des.cpu().numpy()
+        p = self.optimize_QP(A, l, q)       # Need to fill this out
 
         # return the optimal control
         u = torch.tensor(p).to(device=u_des.device, dtype=torch.float32) + u_des
 
         return u
 
-    def optimize_QP(self, A, b):
+    def optimize_QP(self, A, l, q):
         udim = A.shape[1]
 
         # Setup workspace
@@ -116,9 +92,9 @@ class CBF():
         A = sparse.csc_matrix(A)
 
         if self.times_solved == 0:
-            self.prob.setup(P=P, A=A, l=b)
+            self.prob.setup(P=P, A=A, l=l, q=q)
         else:
-            self.prob.update(Ax=A.data, l=b)
+            self.prob.update(Ax=A.data, l=l, q=q)
         self.times_solved += 1
 
         # Solve

@@ -1,4 +1,6 @@
+
 #%%
+import open3d as o3d
 import torch
 from splat.utils import GSplat
 from cbf.utils import CBF
@@ -6,12 +8,11 @@ from dynamics.systems import SingleIntegrator
 import time
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 path_to_gsplat = 'flightroom_gaussians_sparse_deep.json'
 alpha = lambda x: 1.0 * x
-
 tnow = time.time()
 gsplat = GSplat(path_to_gsplat, device, kdtree=True)
+
 print('Time to load GSplat:', time.time() - tnow)
 
 dynamics = SingleIntegrator(device=device, ndim=3)
