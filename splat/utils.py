@@ -24,6 +24,9 @@ def batch_mahalanobis_distance(x, means, covs):
 
     x = x.unsqueeze(0)      # 1 x n
 
+    # we only want x y z 
+    x = x[:, :3]
+
     diff = x - means
     mahalanobis = torch.einsum('bm,bmn,bn->b', diff, covs, diff)
     grad = 2 * torch.bmm(covs, diff[..., None]).squeeze()
