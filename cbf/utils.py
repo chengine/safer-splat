@@ -11,8 +11,8 @@ class CBF():
 
         self.gsplat = gsplat
         self.dynamics = dynamics
-        self.alpha = alpha
-        self.beta = alpha
+        self.alpha = lambda x: .00050 * x
+        self.beta = lambda x: .00010 * x
         self.rel_deg = dynamics.rel_deg
 
         # Create an OSQP object
@@ -24,6 +24,11 @@ class CBF():
         # Computes the A and b matrices for the QP A u <= b
         h, grad_h, hes_h = self.gsplat.query_distance(x)       # can pass in an optional argument for a radius
 
+
+        # lets use a subset of the constraints
+        # h = h[:3]
+        # grad_h = grad_h[:3, :]
+        # hes_h = hes_h[:3, :, :]
 
         h = h.unsqueeze(-1)
         grad_h = torch.cat((grad_h, torch.zeros(h.shape[0], 3).to(grad_h.device)), dim=-1)
@@ -38,6 +43,9 @@ class CBF():
         # print(f"hes_h shape: {hes_h.shape}")
         # print(f"grad_h shape: {grad_h.shape}")
         # print(f"h shape: {h.shape}")
+
+        # print h values
+        # print(f"h values: {h}")
 
 
         f, g, df = self.dynamics.system(x)
@@ -68,10 +76,18 @@ class CBF():
         # lflfh + lglfh * u + alpha(lfh) + beta(lfh + alpha(h)) <= 0
 
         l = -lflfh - self.alpha(lfh) - self.beta(lfh + self.alpha(h.squeeze()))
+
+        # print(f"l values: {l}")
+        # print max l
+        print(f"max l: {torch.max(l)}")
+        
+        #print lglfh shape
+        print(f"lglfh shape: {lglfh.shape}")
+
         A = lglfh[None]  # 1 x 6
 
         P = torch.eye(3).to(grad_h.device)
-        qt = torch.tensor(u_des).to(grad_h.device)
+        qt = torch.tensor(-2*u_des).to(grad_h.device)
 
         # if A.dim() == 1:
         #     A = A[None]
@@ -97,9 +113,9 @@ class CBF():
     def solve_QP(self, x, u_des):
         A, l = self.get_QP_matrices(x, u_des, minimal=False)
     
-        # lets use random subset of the constraints
-        A = A[:3]
-        l = l[:3]
+        # # lets use random subset of the constraints
+        # A = A[:3]
+        # l = l[:3]
 
 
         q = u_des.cpu().numpy()

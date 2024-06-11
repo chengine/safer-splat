@@ -25,14 +25,27 @@ x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32
 xf = torch.tensor([0.35, 0.09, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
 u_des = 0.1*(xf[:3] - x[:3])
-
+# u_des = torch.tensor([0.1, 0.0, 0.0], device=device).to(torch.float32)
+dt = 0.05
 traj = [x]
 
-for i in range(100):
+for i in range(500):
     tnow = time.time()
-    u = cbf.solve_QP(x, u_des)
+
+    # catch value error if the QP is infeasible 
+    try:
+        u = cbf.solve_QP(x, u_des)
+    except ValueError:
+        print('QP is infeasible')
+        break
+    # u = cbf.solve_QP(x, u_des)
+    print('Control input:', u)
+    # print state
+    print(f"State: {x}")
     # x = 0.1*u + x
-    x = dynamics.system(x, u)[0] + x
+    # lets append three 0s to the end of u
+    u = torch.cat((torch.zeros(3).to(u.device), u))
+    x = dynamics.system(x, u)[0] + u*dt + x
     traj.append(x)
     print('Time to solve CBF QP:', time.time() - tnow)
 
@@ -48,6 +61,8 @@ data = {
 
 with open('traj.json', 'w') as f:
     json.dump(data, f, indent=4)
+
+# print(traj)
 # %%
 
 # print(u_des)
