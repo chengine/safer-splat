@@ -153,11 +153,11 @@ tnow = time.time()
 cbf = CBF(gsplat, dynamics, alpha)
 print('Time to initialize CBF:', time.time() - tnow)
 # %%
-x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
+x = torch.tensor([0.0, 0.1, 0.05, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 # x0 = 0
 
 # x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-xf = torch.tensor([0.0, 0.25, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
+xf = torch.tensor([0.5, 0.1, 0.05, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
 dt = 0.05
 traj = [x]
@@ -166,41 +166,25 @@ u_values = []
 u_des_values = []
 safety = []
 
-for i in tqdm(range(800), desc="Simulating trajectory"):
+for i in tqdm(range(250), desc="Simulating trajectory"):
 
-    # vel_des = 0.1*(xf[:3] - x[:3])
-    # vel_des = torch.clamp(vel_des, -0.1, 0.1)
+    vel_des = 5.0*(xf[:3] - x[:3])
+    vel_des = torch.clamp(vel_des, -0.1, 0.1)
 
-    # # add d term
-    # vel_des = vel_des + 5.0*(xf[3:] - x[3:])
-    # # cap between -0.1 and 0.1
-    # u_des = 0.1*(vel_des - x[3:])
-    # # cap between -0.1 and 0.1
-    # u_des = torch.clamp(u_des, -0.1, 0.1)
+    # add d term
+    vel_des = vel_des + 1.0*(xf[3:] - x[3:])
+    # cap between -0.1 and 0.1
+    u_des = 1.0*(vel_des - x[3:])
+    # cap between -0.1 and 0.1
+    u_des = torch.clamp(u_des, -0.1, 0.1)
 
-    u_des = torch.tensor([0.1, 0.0, 0.0], device=device).to(torch.float32)
+    # u_des = torch.tensor([0.1, 0.0, 0.0], device=device).to(torch.float32)
 
 
     tnow = time.time()
 
-
-    # catch value error if the QP is infeasible 
-    try:
-        u = cbf.solve_QP(x, u_des)
-    except ValueError:
-        print('QP is infeasible')
-        break
-
-    # u = cbf.solve_QP(x, u_des)
-    # u = u_des
-    # clip u between .2 and -.2
-    # u = torch.clamp(u, -0.2, 0.2)
-    # print('Control input:', u)
-    # print state
-    # print(f"State: {x[:3]}")
-    # x = 0.1*u + x
-    # lets append three 0s to the end of u
-    # u = torch.cat((torch.zeros(3).to(u.device), u))
+    u = cbf.solve_QP(x, u_des)
+   
     x = double_integrator_dynamics(x,u)*dt + x
 
     traj.append(x)

@@ -80,14 +80,30 @@ def batch_euclidean_distance(x, means, covs):
     # Compute the Euclidean distance
     euclidean_distance = torch.norm(diff, dim=1)
 
-    # Compute the eigenvalues for each covariance matrix
-    eigenvalues = torch.linalg.eigvals(covs)
+    # # Compute the eigenvalues for each covariance matrix
+    # eigenvalues = torch.linalg.eigvals(covs)
     
-    # Get the maximum eigenvalue for each covariance matrix
-    max_eigenvalues = torch.max(eigenvalues.real, dim=-1)[0]  # Use the real part
+    # # Get the maximum eigenvalue for each covariance matrix
+    # max_eigenvalues = torch.min(eigenvalues.real, dim=-1)[0]  # Use the real part
+
+
+    # # print the largest eigenvalue
+    # print(f"max eigenvalues: {torch.max(max_eigenvalues)}")
+
+    # # now print the smallest eigenvalue
+    # print(f"min eigenvalues: {torch.min(max_eigenvalues)}")
+
+    # # print the first max eigenvalue
+    # print(f"max eigenvalues: {max_eigenvalues[0]}")
+    # # print the first cov
+    # print(f"covs: {covs[0]}")
+    # # print 1/ the first max eigenvalue
+    # print(f"1/max eigenvalues: {1/max_eigenvalues[0]}")
+
+    # print(torch.min(1/max_eigenvalues))
 
     # Normalize the Euclidean distance by the largest eigenvalue
-    normalized_distance = euclidean_distance -.025 #/ (max_eigenvalues + eps)
+    normalized_distance = euclidean_distance - .02 #1/ (max_eigenvalues + eps)
 
     # Compute the gradient
     grad = diff / (euclidean_distance.unsqueeze(1) + eps)  # B x 3
