@@ -11,8 +11,8 @@ class CBF():
 
         self.gsplat = gsplat
         self.dynamics = dynamics
-        self.alpha = lambda x: .00050 * x
-        self.beta = lambda x: .00010 * x
+        self.alpha = lambda x: 1e0*5.0 * x
+        self.beta = lambda x: 1e0*5.0 * x
         self.rel_deg = dynamics.rel_deg
 
         # Create an OSQP object
@@ -24,11 +24,17 @@ class CBF():
         # Computes the A and b matrices for the QP A u <= b
         h, grad_h, hes_h = self.gsplat.query_distance(x)       # can pass in an optional argument for a radius
 
+        # print distance h
+        # print(f"distance h: {h}")
+
+        # print the min distance
+        # print(f"min distance: {torch.min(h)}")
 
         # lets use a subset of the constraints
-        # h = h[:3]
-        # grad_h = grad_h[:3, :]
-        # hes_h = hes_h[:3, :, :]
+        # n = 7000
+        # h = h[:n]
+        # grad_h = grad_h[:n, :]
+        # hes_h = hes_h[:n, :, :]
 
         h = h.unsqueeze(-1)
         grad_h = torch.cat((grad_h, torch.zeros(h.shape[0], 3).to(grad_h.device)), dim=-1)
@@ -44,30 +50,12 @@ class CBF():
         # print(f"grad_h shape: {grad_h.shape}")
         # print(f"h shape: {h.shape}")
 
-        # print h values
-        # print(f"h values: {h}")
-
-
         f, g, df = self.dynamics.system(x)
 
         f = f.unsqueeze(-1)
-        # f is 6x1, g is 6x1, df is 6x6
-        #print shapes of f g df
-        # print(f"f shape: {f.shape}")
-        # print(f"g shape: {g.shape}")
-        # print(f"df shape: {df.shape}")
-
-
+       
         # Extended barrier function
         lfh = torch.matmul(grad_h, f).squeeze()
-
-
-
-        # Compute the Lie derivatives of the Lie derivatives
-        # lflfh is (d2h/dx2 * f(x) + dh/dx * df/dx) * f(x)
-        # lglfh is (d2h/dx2 * f(x) + dh/dx * df/dx) * g(x)
-
-        # need to check below
 
         lflfh = torch.matmul(f.T, torch.matmul(hes_h, f)).squeeze() + torch.matmul(grad_h, torch.matmul(df, f)).squeeze()
         lglfh = torch.matmul(g.T, torch.matmul(hes_h, f)).squeeze() + torch.matmul(grad_h, torch.matmul(df, g)).squeeze()
@@ -77,13 +65,7 @@ class CBF():
 
         l = -lflfh - self.alpha(lfh) - self.beta(lfh + self.alpha(h.squeeze()))
 
-        # print(f"l values: {l}")
-        # print max l
-        print(f"max l: {torch.max(l)}")
-        
-        #print lglfh shape
-        print(f"lglfh shape: {lglfh.shape}")
-
+       
         A = lglfh[None]  # 1 x 6
 
         P = torch.eye(3).to(grad_h.device)
@@ -104,25 +86,27 @@ class CBF():
         #     pt = find_interior(A, b)
         #     A, b = h_rep_minimal(A, b, pt)
 
+        # write code here to numerical normalize the constraints
+
         A = A.cpu().numpy().squeeze()
         l = l.cpu().numpy()
         qt = qt.cpu().numpy()
+
+        # # Normalize the constraints
+        # norms = np.linalg.norm(A, axis=1, keepdims=True)
+        # A = A / norms
+        # l = l / norms.squeeze()
 
         return A, l
 
     def solve_QP(self, x, u_des):
         A, l = self.get_QP_matrices(x, u_des, minimal=False)
-    
-        # # lets use random subset of the constraints
-        # A = A[:3]
-        # l = l[:3]
 
-
-        q = u_des.cpu().numpy()
+        q = -1*u_des.cpu().numpy()
         p = self.optimize_QP(A, l, q)       # Need to fill this out
 
         # return the optimal control
-        u = torch.tensor(p).to(device=u_des.device, dtype=torch.float32) + u_des
+        u = torch.tensor(p).to(device=u_des.device, dtype=torch.float32) 
 
         return u
 

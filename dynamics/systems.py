@@ -43,4 +43,4 @@ class DoubleIntegrator():
         A[:self.ndim, self.ndim:] = torch.eye(self.ndim).to(self.device)
 
         return f, g, A
-
+    
