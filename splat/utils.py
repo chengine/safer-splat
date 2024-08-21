@@ -6,6 +6,7 @@ from downsampling.utils import mvee, mvee_batched, outer_ellipsoid
 from ellipsoids.utils import fibonacci_ellipsoid, rot_z, create_gs_mesh
 from ellipsoids.plots import plot_ellipse
 from ellipsoids.gs_utils import quaternion_to_rotation_matrix
+from ellipsoids.ellipsoid_utils import compute_ellipsoid_gradients
 import open3d as o3d
 from scipy.spatial import KDTree
 from ellipsoids.gs_utils import compute_cov
@@ -129,8 +130,10 @@ def batch_euclidean_distance(x, means, covs):
 
 
 class GSplat():
-    def __init__(self, filepath, device, kdtree=False):
+    def __init__(self, filepath, device, R_robot, D_robot, kdtree=False):
         self.device = device
+        self.R_robot = R_robot
+        self.D_robot = D_robot
 
         self.load_gsplat(filepath)
 
@@ -201,11 +204,12 @@ class GSplat():
         # Queries the Mahalanobis distance of x to the GSplat. If radius is provided, returns the indices of the GSplats within the radius using a KDTree.
 
         if radius is None:
-            return batch_euclidean_distance(x, self.means, self.cov_inv)
+            #return batch_euclidean_distance(x, self.means, self.cov_inv)
+            return compute_ellipsoid_gradients(self.rots, self.scales, self.R_robot, self.D_robot, self.means, x[...,:3])
             
         else:
             assert radius is not None, 'Radius must be provided for KDTree query.'
             idx = self.kdtree.query_ball_point(x.cpu().numpy(), radius)
 
-            return batch_euclidean_distance(x, self.means[idx], self.cov_inv[idx])
-
+            #return batch_euclidean_distance(x, self.means[idx], self.cov_inv[idx])
+            return compute_ellipsoid_gradients(self.rots[idx], self.scales[idx], self.R_robot, self.D_robot, self.means[idx], x[...,:3])

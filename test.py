@@ -25,7 +25,6 @@
 # x = torch.tensor([-2.5, 0.05, 0.0, 0.1, 0.0, 0.0], device=device).to(torch.float32)
 # xf = torch.tensor([0.0, 0.25, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
-
 # # u_des = torch.tensor([0.0, 0.0, 0.0], device=device).to(torch.float32)
 # dt = 0.05
 # traj = [x]
@@ -143,7 +142,7 @@ path_to_gsplat = 'flightroom_gaussians_sparse_deep.json'
 # path_to_gsplat = 'gaussians_test.json'
 alpha = lambda x: 1.0 * x
 tnow = time.time()
-gsplat = GSplat(path_to_gsplat, device, kdtree=True)
+gsplat = GSplat(path_to_gsplat, device, torch.tensor([1., 0., 0., 0.]).to(device), 0.03*torch.ones(3).to(device), kdtree=True)
 
 print('Time to load GSplat:', time.time() - tnow)
 
@@ -293,3 +292,5 @@ ax.plot(traj_np[:, 0], traj_np[:, 1], traj_np[:, 2], linewidth=2)
 # ax.tick_params(axis='both', which='minor', labelsize=12)
 
 # plt.show()
+
+#%%

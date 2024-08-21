@@ -1,5 +1,5 @@
 import torch
-import osqp
+# import osqp
 import numpy as np
 from scipy import sparse
 from scipy.optimize import linprog
@@ -21,13 +21,13 @@ class CBF():
         self.rel_deg = dynamics.rel_deg
 
         # Create an OSQP object
-        self.prob = osqp.OSQP()
+        # self.prob = osqp.OSQP()
 
         self.times_solved = 0
 
     def get_QP_matrices(self, x, u_des, minimal=True):
         # Computes the A and b matrices for the QP A u <= b
-        h, grad_h, hes_h = self.gsplat.query_distance(x)       # can pass in an optional argument for a radius
+        h, grad_h, hes_h = self.gsplat.query_distance(x[..., :3])       # can pass in an optional argument for a radius
 
         # print distance h
         # print(f"distance h: {h}")
@@ -177,30 +177,3 @@ class CBF():
 
 
         return sol.x
-
-
-    
-def h_rep_minimal(A, b, pt):
-    halfspaces = np.concatenate([A, -b[..., None]], axis=-1)
-    hs = scipy.spatial.HalfspaceIntersection(halfspaces, pt, incremental=False, qhull_options=None)
-    qhull_pts = hs.intersections
-
-    convex_hull = scipy.spatial.ConvexHull(qhull_pts, incremental=False, qhull_options=None)
-    minimal_Ab = convex_hull.equations
-
-    minimal_A = minimal_Ab[:, :-1]
-    minimal_b = -minimal_Ab[:, -1]
-
-    return minimal_A, minimal_b
-
-def find_interior(A, b):
-    # by way of Chebyshev center
-    norm_vector = np.reshape(np.linalg.norm(A, axis=1),(A.shape[0], 1))
-    c = np.zeros(A.shape[1]+1)
-    c[-1] = -1
-    A = np.hstack((A, norm_vector))
-
-    # print(c.shape, A.shape, b.shape)
-    res = linprog(c, A_ub=A, b_ub=b, bounds=(None, None))
-
-    return res.x[:-1]
