@@ -100,6 +100,7 @@ def distance_point_ellipsoid(e, y):
      
     return distance, x
 
+#%%
 # torch.manual_seed(0)
 n = 1000000
 dim = 3
