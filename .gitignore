@@ -1,3 +1,17 @@
+# Images
+.png 
+.jpg
+.jpeg
+.gif
+.svg
+.mp4
+
+# 3D geometry
+.blend
+.blend1
+.obj
+.ply
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
