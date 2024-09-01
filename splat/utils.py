@@ -12,7 +12,7 @@ from scipy.spatial import KDTree
 from ellipsoids.gs_utils import compute_cov
 from tqdm import tqdm
 import time
-
+from splat.intersection_utils import distance_point_ellipsoid
 
 def batch_mahalanobis_distance(x, means, covs):
     # Computes the Mahalanobis distance of a batch of points x to a batch of Gaussians with means and covariances.
@@ -200,16 +200,37 @@ class GSplat():
         scene = create_gs_mesh(self.means.cpu().numpy(), quaternion_to_rotation_matrix(self.rots).cpu().numpy(), self.scales.cpu().numpy(), self.colors.cpu().numpy(), res=4, transform=None, scale=None)
         o3d.io.write_triangle_mesh(filepath, scene)
 
-    def query_distance(self, x, radius=None):
+    def query_distance(self, x, radius):
         # Queries the Mahalanobis distance of x to the GSplat. If radius is provided, returns the indices of the GSplats within the radius using a KDTree.
 
-        if radius is None:
-            #return batch_euclidean_distance(x, self.means, self.cov_inv)
-            return compute_ellipsoid_gradients(self.rots, self.scales, self.R_robot, self.D_robot, self.means, x[...,:3])
+        # if radius is None:
+        #     #return batch_euclidean_distance(x, self.means, self.cov_inv)
+        #     return compute_ellipsoid_gradients(self.rots, self.scales, self.R_robot, self.D_robot, self.means, x[...,:3])
             
-        else:
-            assert radius is not None, 'Radius must be provided for KDTree query.'
-            idx = self.kdtree.query_ball_point(x.cpu().numpy(), radius)
+        # else:
+        #     assert radius is not None, 'Radius must be provided for KDTree query.'
+        #     idx = self.kdtree.query_ball_point(x.cpu().numpy(), radius)
 
-            #return batch_euclidean_distance(x, self.means[idx], self.cov_inv[idx])
-            return compute_ellipsoid_gradients(self.rots[idx], self.scales[idx], self.R_robot, self.D_robot, self.means[idx], x[...,:3])
+        #     #return batch_euclidean_distance(x, self.means[idx], self.cov_inv[idx])
+        #     return compute_ellipsoid_gradients(self.rots[idx], self.scales[idx], self.R_robot, self.D_robot, self.means[idx], x[...,:3])
+
+
+        # Queries the min Euclidian distance from point to ellipsoid
+
+        # Rotate point into the ellipsoid frame
+        rots = quaternion_to_rotation_matrix(self.rots)
+
+        x_local_frame = torch.bmm( torch.transpose(rots, 1, 2) , (x[..., :3] - self.means).unsqueeze(-1) ).squeeze(-1)
+
+        sorted_scales = torch.sort(self.scales, dim=-1, descending=True)[0]
+        h, closest_x, grad_h, hes_h = distance_point_ellipsoid(sorted_scales + radius, x_local_frame)
+
+        closest_x = torch.bmm(rots, closest_x.unsqueeze(-1)).squeeze(-1) + self.means
+
+        # Rotate the gradient back to the global frame
+        grad_h = torch.bmm(grad_h[..., None, :], torch.transpose(rots, 1, 2)).squeeze()
+
+        # Rotate the hessian back to the global frame
+        hes_h = 2*rots
+
+        return h, grad_h, hes_h

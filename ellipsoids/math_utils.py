@@ -12,8 +12,8 @@ def h_rep_minimal(A, b, pt):
     halfspaces = np.concatenate([A, -b[..., None]], axis=-1)
     hs = scipy.spatial.HalfspaceIntersection(halfspaces, pt, incremental=False, qhull_options=None)
     minimal_Ab = halfspaces[hs.dual_vertices]
-    # qhull_pts = hs.intersections
 
+    # qhull_pts = hs.intersections
     # convex_hull = scipy.spatial.ConvexHull(qhull_pts, incremental=False, qhull_options=None)
     # minimal_Ab = convex_hull.equations
 

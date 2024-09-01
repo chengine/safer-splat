@@ -6,10 +6,10 @@ from scipy.optimize import linprog
 import scipy
 
 import clarabel
-
+from ellipsoids.math_utils import h_rep_minimal, find_interior
 
 class CBF():
-    def __init__(self, gsplat, dynamics, alpha):
+    def __init__(self, gsplat, dynamics, alpha, radius):
         # gsplat: GSplat object
         # dynamics: function that returns f, g given x
         # alpha: class K extended function
@@ -19,6 +19,7 @@ class CBF():
         self.alpha = lambda x: 1e0*5.0 * x
         self.beta = lambda x: 1e0*5.0 * x
         self.rel_deg = dynamics.rel_deg
+        self.radius = radius
 
         # Create an OSQP object
         # self.prob = osqp.OSQP()
@@ -27,7 +28,7 @@ class CBF():
 
     def get_QP_matrices(self, x, u_des, minimal=True):
         # Computes the A and b matrices for the QP A u <= b
-        h, grad_h, hes_h = self.gsplat.query_distance(x[..., :3])       # can pass in an optional argument for a radius
+        h, grad_h, hes_h = self.gsplat.query_distance(x[..., :3], radius=self.radius)       # can pass in an optional argument for a radius
 
         # print distance h
         # print(f"distance h: {h}")
@@ -84,24 +85,30 @@ class CBF():
         A = A.cpu().numpy().squeeze()
         l = l.cpu().numpy()
 
-
-        # We want to solve for a minimal set of constraints in the Polytope
+        #We want to solve for a minimal set of constraints in the Polytope
         #First, normalize
-        # norms = np.linalg.norm(A, axis=1, keepdims=True)
-        # A = A / norms
-        # l = l / norms.squeeze()
+        norms = np.linalg.norm(A, axis=-1, keepdims=True)
+        A = -A / norms
+        l = -l / norms.squeeze()
+        # print('Size of vanilla polytope:', A.shape[0])
 
-        # if minimal:
-        #     # Need to pass in an interior point to the polytope
-        #     pt = find_interior(A, l)
-        #     A, l = h_rep_minimal(A, l, pt)
+        if minimal:
+            try:
+                # Need to pass in an interior point to the polytope
+                pt = find_interior(A, l)
+                A_, l_ = h_rep_minimal(A, l, pt)
+                print('Reduction in polytope size:', 1 - A_.shape[0] / A.shape[0], 'Final polytope size:', A_.shape[0])
+                A, l = A_, l_
+            except:
+                print('Failed to compute minimal polytope')
+                pass
 
         # write code here to numerical normalize the constraints
 
         return A, l
 
     def solve_QP(self, x, u_des):
-        A, l = self.get_QP_matrices(x, u_des, minimal=False)
+        A, l = self.get_QP_matrices(x, u_des, minimal=True)
 
         q = -1*u_des.cpu().numpy()
         # p = self.optimize_QP(A, l, q)       # Need to fill this out
@@ -163,7 +170,7 @@ class CBF():
         settings = clarabel.DefaultSettings()
         settings.verbose = False
 
-        solver = clarabel.DefaultSolver(P, q, -A, -l, [clarabel.NonnegativeConeT(cons)], settings)
+        solver = clarabel.DefaultSolver(P, q, A, l, [clarabel.NonnegativeConeT(cons)], settings)
 
         sol = solver.solve()
 

@@ -96,34 +96,38 @@ def distance_point_ellipsoid(e, y):
     
     x = r * y / (sb[..., None] + r)
     
-    distance = torch.linalg.norm(x - y, dim=-1)
+    distance = torch.linalg.norm(x - y, dim=-1)**2
+
+    grad = -2 * (x - y)
+
+    hess = torch.eye(3, device=device).unsqueeze(0).repeat(len(e), 1, 1)
      
-    return distance, x
+    return distance, x, grad, hess
 
-#%%
-# torch.manual_seed(0)
-n = 1000000
-dim = 3
+# #%%
+# # torch.manual_seed(0)
+# n = 1000000
+# dim = 3
 
-quats = torch.rand(n, 4).cuda()
-quats = quats / torch.linalg.norm(quats, dim=-1, keepdim=True)
-rot_A = quaternion_to_rotation_matrix(quats)
-scale_A = 5e-2 + 0.01*torch.rand(n, 3).cuda()
-sqrt_sigma_A = torch.bmm(rot_A, torch.diag_embed(scale_A))
-Sigma_A = torch.bmm(sqrt_sigma_A, sqrt_sigma_A.transpose(2, 1))
-scale_A = scale_A**2
+# quats = torch.rand(n, 4).cuda()
+# quats = quats / torch.linalg.norm(quats, dim=-1, keepdim=True)
+# rot_A = quaternion_to_rotation_matrix(quats)
+# scale_A = 5e-2 + 0.01*torch.rand(n, 3).cuda()
+# sqrt_sigma_A = torch.bmm(rot_A, torch.diag_embed(scale_A))
+# Sigma_A = torch.bmm(sqrt_sigma_A, sqrt_sigma_A.transpose(2, 1))
+# scale_A = scale_A**2
 
-Sigma_A = Sigma_A[:, :dim, :dim]
-mu_A = torch.rand(n, dim).cuda()
+# Sigma_A = Sigma_A[:, :dim, :dim]
+# mu_A = torch.rand(n, dim).cuda()
 
-mu_B = torch.rand(len(scale_A), dim, device=device)
+# mu_B = torch.rand(len(scale_A), dim, device=device)
 
-ind, es = torch.sort(torch.sqrt(scale_A), dim=-1)[::-1]
+# ind, es = torch.sort(torch.sqrt(scale_A), dim=-1)[::-1]
 
-tnow = time.time()
-dist, closest_x = distance_point_ellipsoid(es, mu_B)
-print('Bisection: ', time.time() - tnow)
-print(dist)
+# tnow = time.time()
+# dist, closest_x = distance_point_ellipsoid(es, mu_B)
+# print('Bisection: ', time.time() - tnow)
+# print(dist)
 # %%
 
 # import cvxpy as cvx

@@ -141,6 +141,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 path_to_gsplat = 'flightroom_gaussians_sparse_deep.json'
 # path_to_gsplat = 'gaussians_test.json'
 alpha = lambda x: 1.0 * x
+radius = 0.03
 tnow = time.time()
 gsplat = GSplat(path_to_gsplat, device, torch.tensor([1., 0., 0., 0.]).to(device), 0.03*torch.ones(3).to(device), kdtree=True)
 
@@ -149,14 +150,14 @@ print('Time to load GSplat:', time.time() - tnow)
 dynamics = DoubleIntegrator(device=device, ndim=3)
 #%%
 tnow = time.time()
-cbf = CBF(gsplat, dynamics, alpha)
+cbf = CBF(gsplat, dynamics, alpha, radius)
 print('Time to initialize CBF:', time.time() - tnow)
 # %%
-x = torch.tensor([0.0, 0.1, 0.05, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-# x0 = 0
+# x = torch.tensor([0.0, 0.1, 0.05, 0.0, 0.0, 0.0], device=device).to(torch.float32)
+x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
 # x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-xf = torch.tensor([0.5, 0.1, 0.05, 0.0, 0.0, 0.0], device=device).to(torch.float32)
+xf = torch.tensor([0.5, 0.05, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
 dt = 0.05
 traj = [x]
@@ -165,7 +166,7 @@ u_values = []
 u_des_values = []
 safety = []
 
-for i in tqdm(range(250), desc="Simulating trajectory"):
+for i in tqdm(range(500), desc="Simulating trajectory"):
 
     vel_des = 5.0*(xf[:3] - x[:3])
     vel_des = torch.clamp(vel_des, -0.1, 0.1)
@@ -192,7 +193,7 @@ for i in tqdm(range(250), desc="Simulating trajectory"):
     u_des_values.append(u_des.cpu().numpy())
 
     # let's also record the first manhalanobis distance
-    h, grad_h, hes_h = gsplat.query_distance(x)
+    h, grad_h, hes_h = gsplat.query_distance(x, radius=radius)
     # record min value of h
     safety.append(torch.min(h).item())
 
@@ -261,7 +262,7 @@ plt.show()
 #%% Plot safety values
 fig, ax = plt.subplots(figsize=(14, 8))
 
-#%% Plot safety values
+# Plot safety values
 
 ax.plot(times[1:], safety, label='Safety Value', color='m', linewidth=2)
 ax.axhline(y=0, color='r', linestyle='--', linewidth=2, label='y = 0')
