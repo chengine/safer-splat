@@ -1,3 +1,7 @@
+# General folders
+geometries
+trajectories
+
 # Images
 *.png 
 *.jpg

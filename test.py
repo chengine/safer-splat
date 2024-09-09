@@ -129,8 +129,8 @@ def double_integrator_dynamics(x, u):
 #%%
 import open3d as o3d
 import torch
-from splat.utils import GSplat
-from cbf.utils import CBF
+from splat.gsplat_utils import GSplat
+from cbf.cbf_utils import CBF
 from dynamics.systems import DoubleIntegrator, SingleIntegrator
 import time
 import matplotlib.pyplot as plt

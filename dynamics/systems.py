@@ -7,7 +7,6 @@ class SingleIntegrator():
         self.rel_deg = 1
 
     def system(self, x, u=None):
-
         # Defines the f function
         f = torch.zeros(self.ndim).to(self.device)
         g = torch.eye(self.ndim).to(self.device)
