@@ -138,7 +138,7 @@ class GSplatLoader():
 
             # solve for the distance in the local frame
             dist, _, hess, yhat = distance_point_ellipsoid(sorted_scales, x_local_frame)
-
+            
             # flip, rotate, and translate the closest point back to the global frame
             y = torch.bmm(rots, (flip * yhat).unsqueeze(-1)).squeeze(-1) + self.means
 

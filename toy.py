@@ -21,16 +21,15 @@ rot_A = quaternion_to_rotation_matrix(quats)
 scale_A = torch.rand(n, 3).cuda()
 sqrt_sigma_A = torch.bmm(rot_A, torch.diag_embed(scale_A))
 Sigma_A = torch.bmm(sqrt_sigma_A, sqrt_sigma_A.transpose(2, 1))
-scale_A_squared = scale_A**2
 
 mu_A = torch.rand(n, dim)
-
 mu_B = torch.rand(dim, device=device)
 
 scales, inds = torch.sort(scale_A, dim=-1, descending=True)
 
 splat = DummyGSplatLoader(device)
-splat.initialize_attributes(mu_A, quats, scale_A)
+splat.initialize_attributes(mu_A, quats, scales)
+
 #%%
 
 radius = 0.05
