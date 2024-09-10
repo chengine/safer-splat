@@ -30,7 +30,7 @@ class CBF():
     # TODO: This function assumes relative degree 2, we should make it account for single-integrator dynamics too.
     def get_QP_matrices(self, x, u_des, minimal=True):
         # Computes the A and b matrices for the QP A u <= b
-        h, grad_h, hes_h = self.gsplat.query_distance(x[..., :3], radius=self.radius)       # can pass in an optional argument for a radius
+        h, grad_h, hes_h, info = self.gsplat.query_distance(x[..., :3], radius=self.radius)       # can pass in an optional argument for a radius
 
         h = h.unsqueeze(-1)
         grad_h = torch.cat((grad_h, torch.zeros(h.shape[0], 3).to(grad_h.device)), dim=-1)
@@ -77,10 +77,9 @@ class CBF():
                     print('The origin is not a feasible point. Resorting to solving Chebyshev center for an interior point.')
                     # Find interior point through Chebyshev center
                     feasible_pt = find_interior(A, l)
-                    Aminimal, lminimal = h_rep_minimal(A, l, feasible_pt)
-                A, l = Aminimal, lminimal
-                
+                    Aminimal, lminimal = h_rep_minimal(A, l, feasible_pt)               
                 print('Reduction in polytope size:', 1 - Aminimal.shape[0] / A.shape[0], 'Final polytope size:', Aminimal.shape[0])
+                A, l = Aminimal, lminimal
             except:
                 print('Failed to compute minimal polytope. Keeping all constraints.')
                 pass

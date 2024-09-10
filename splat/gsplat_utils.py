@@ -1,5 +1,6 @@
 import json
 import torch
+from pathlib import Path
 from ellipsoids.mesh_utils import create_gs_mesh
 from ellipsoids.covariance_utils import quaternion_to_rotation_matrix
 import open3d as o3d
@@ -12,9 +13,9 @@ class GSplatLoader():
     def __init__(self, gsplat_location, device):
         self.device = device
 
-        if gsplat_location.endswith('.json'):
+        if isinstance(gsplat_location, str):
             self.load_gsplat_from_json(gsplat_location)
-        elif gsplat_location.endswith('.yml'):
+        elif isinstance(gsplat_location, Path):
             self.load_gsplat_from_nerfstudio(gsplat_location)
         else:
             raise ValueError('GSplat file must be either a .json or .yml file.')
@@ -26,15 +27,15 @@ class GSplatLoader():
                     dataset_mode = 'test',
                     device = self.device)
 
-        self.means = self.splat.pipeline.model.means.clone()
-        self.rots = self.splat.pipeline.model.scales.clone()
-        self.scales = self.splat.pipeline.model.quats.clone() 
+        self.means = self.splat.pipeline.model.means.detach().clone()
+        self.rots = self.splat.pipeline.model.quats.detach().clone()
+        self.scales = self.splat.pipeline.model.scales.detach().clone() 
         self.scales = torch.exp(self.scales)
 
         self.cov_inv = compute_cov(self.rots, 1 / self.scales)
         self.covs = compute_cov(self.rots, self.scales)
 
-        self.colors = SH2RGB(self.pipeline.model.features_dc.clone())
+        self.colors = SH2RGB(self.splat.pipeline.model.features_dc.detach().clone())
 
         print(f'There are {self.means.shape[0]} Gaussians in the GSplat model')
 
@@ -79,7 +80,7 @@ class GSplatLoader():
 
     def save_mesh(self, filepath):
         scene = create_gs_mesh(self.means.cpu().numpy(), quaternion_to_rotation_matrix(self.rots).cpu().numpy(), self.scales.cpu().numpy(), self.colors.cpu().numpy(), res=4, transform=None, scale=None)
-        success = o3d.io.write_triangle_mesh(filepath, scene)
+        success = o3d.io.write_triangle_mesh(filepath, scene, print_progress=True)
 
         return success
 

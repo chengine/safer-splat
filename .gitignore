@@ -1,6 +1,8 @@
 # General folders
 geometries
 trajectories
+data
+outputs
 
 # Images
 *.png 
