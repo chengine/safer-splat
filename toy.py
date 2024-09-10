@@ -75,7 +75,6 @@ for i, (Sigma_A_, mu_A_) in enumerate( zip( Sigma_A, mu_A ) ):
     print('-------------------------------------')
 
 
-
 #%% Plotting
 
 fig, ax = plt.subplots(1, 1, figsize=(10, 10))
