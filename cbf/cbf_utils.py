@@ -4,6 +4,7 @@ import numpy as np
 from scipy import sparse
 import clarabel
 from ellipsoids.polytopes_utils import h_rep_minimal, find_interior
+import time
 
 class CBF():
     def __init__(self, gsplat, dynamics, alpha, beta, radius):
@@ -30,7 +31,9 @@ class CBF():
     # TODO: This function assumes relative degree 2, we should make it account for single-integrator dynamics too.
     def get_QP_matrices(self, x, u_des, minimal=True):
         # Computes the A and b matrices for the QP A u <= b
+        tnow = time.time()
         h, grad_h, hes_h, info = self.gsplat.query_distance(x[..., :3], radius=self.radius)       # can pass in an optional argument for a radius
+        print('Time to query distance:', time.time() - tnow)
 
         h = h.unsqueeze(-1)
         grad_h = torch.cat((grad_h, torch.zeros(h.shape[0], 3).to(grad_h.device)), dim=-1)
@@ -67,22 +70,41 @@ class CBF():
         l = -l / norms.squeeze()
 
         # Try to find minimal set of polytopes
+        tnow = time.time()
         if minimal:
+
+            # We know that the collision-less ellipsoids have CBF constraints that contain the origin. 
+            # For those that are in collision, we don't know if the origin is in the polytope and we should
+            # avoid trying to solve an optimization problem to find the interior. Because these constraints
+            # are relatively few, we can just put them in the QP as is.
+            collisionless = (h.cpu().numpy() > 0).squeeze()
+
+            collisionless_A = A[collisionless]
+            collisionless_l = l[collisionless]
+
+            collision_A = A[~collisionless]
+            collision_l = l[~collisionless]
+
+            print('Is Robot in Collision?: ', np.all(collisionless), 'Number of collisions:', np.sum(~collisionless))
+
             try:
                 try:
                     # If the robot is safe, the origin should be solution (u = -(alpha + beta) v)
-                    feasible_pt = -(self.alpha_constant + self.beta_constant) * x[..., 3:].cpu().numpy()
-                    Aminimal, lminimal = h_rep_minimal(A, l, feasible_pt)
+                    feasible_pt = -(self.alpha_constant + self.beta_constant) * x[..., 3:6].cpu().numpy()
+                    Aminimal, lminimal = h_rep_minimal(collisionless_A, collisionless_l, feasible_pt)
                 except:
                     print('The origin is not a feasible point. Resorting to solving Chebyshev center for an interior point.')
                     # Find interior point through Chebyshev center
-                    feasible_pt = find_interior(A, l)
-                    Aminimal, lminimal = h_rep_minimal(A, l, feasible_pt)               
+                    # feasible_pt = find_interior(A, l)
+                    # Aminimal, lminimal = h_rep_minimal(A, l, feasible_pt)               
+                    raise ValueError('Failed to find an interior point for the minimal polytope.')
+                
                 print('Reduction in polytope size:', 1 - Aminimal.shape[0] / A.shape[0], 'Final polytope size:', Aminimal.shape[0])
-                A, l = Aminimal, lminimal
+                A, l = np.concatenate([Aminimal, collision_A], axis=0), np.concatenate([lminimal, collision_l], axis=0)
             except:
                 print('Failed to compute minimal polytope. Keeping all constraints.')
                 pass
+        print('Time to compute minimal polytope:', time.time() - tnow)
 
         return A, l, P, q
 
@@ -90,7 +112,9 @@ class CBF():
     def solve_QP(self, x, u_des):
         A, l, P, q = self.get_QP_matrices(x, u_des, minimal=True)
 
+        tnow = time.time()
         u_out, success_flag = self.optimize_QP_clarabel(A, l, P, q)
+        print('Time to solve QP:', time.time() - tnow)
 
         self.solver_success = success_flag
 

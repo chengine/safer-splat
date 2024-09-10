@@ -24,7 +24,6 @@ def double_integrator_dynamics(x, u):
 
     return xdot
 
-
 #%%
 import open3d as o3d
 import torch
@@ -64,10 +63,10 @@ print('Time to initialize CBF:', time.time() - tnow)
 # xf = torch.tensor([0.5, 0.09, -0.04, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
 # For old union
-# x = torch.tensor([-0.1, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-# xf = torch.tensor([0.35, -0.2, -0.18, 0.0, 0.0, 0.0], device=device).to(torch.float32)
+x = torch.tensor([-0.1, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
+# xf = torch.tensor([0.35, -0.2, -0.14, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
-x = torch.tensor([0.19, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
+# x = torch.tensor([0.19, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 xf = torch.tensor([-0.28, -0.2, -0.14, 0.0, 0.0, 0.0], device=device).to(torch.float32)
 
 dt = 0.05
