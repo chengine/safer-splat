@@ -126,19 +126,23 @@ class GSplatLoader():
             # Convert rotations from quaternions to rotation matrices
             rots = quaternion_to_rotation_matrix(self.rots)
 
+            # Sort the scales in descending order as required by the solver
+            sorted_output = torch.sort(self.scales, dim=-1, descending=True)
+            sorted_scales, sorted_inds = sorted_output[0], sorted_output[1]
+      
+            # NOTE:!!! IMPORTANT!!! When we sort, we need to change the rotation matrices accordingly
+            rots = torch.gather(rots, 2, sorted_inds[..., None, :].expand_as(rots))
+
             # Translate robot w.r.t ellipsoid mean, then rotate point into ellipsoid aligned frame
-            x_local_frame = torch.bmm( torch.transpose(rots, 1, 2) , (x[..., :3] - self.means).unsqueeze(-1) ).squeeze()
+            x_local_frame = torch.bmm( torch.transpose(rots, 1, 2) , (x[..., :3] - self.means).unsqueeze(-1) ).squeeze() + 1e-8
 
             # The solver requires the point to be in the first octant. Calculate the sign of the point and flip the point.
             flip = torch.sign(x_local_frame)
             x_local_frame = torch.abs(x_local_frame)
 
-            # Sort the scales in descending order as required by the solver
-            sorted_scales = torch.sort(self.scales, dim=-1, descending=True)[0]
-
             # solve for the distance in the local frame
-            dist, _, hess, yhat = distance_point_ellipsoid(sorted_scales, x_local_frame)
-            
+            dist, _, hess, yhat = distance_point_ellipsoid(sorted_scales + 1e-8, x_local_frame)
+
             # flip, rotate, and translate the closest point back to the global frame
             y = torch.bmm(rots, (flip * yhat).unsqueeze(-1)).squeeze(-1) + self.means
 

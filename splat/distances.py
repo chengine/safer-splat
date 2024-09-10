@@ -71,7 +71,7 @@ def batch_squared_point_distance(x, means):
     return euclidean_distance_squared, grad, hessian
 
 # This is a root-finding function that performs bisection search.
-def real_get_root(r, z, g, max_iterations=100):
+def real_get_root(r, z, g, max_iterations=25):
     n = r*z
 
     s = torch.zeros((len(n), 2), device=r.device)
