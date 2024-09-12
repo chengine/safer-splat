@@ -42,7 +42,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 alpha = 5.
 beta = 1.
-radius = 0.03
+radius = 0.015
 dt = 0.05
 
 n = 100
@@ -56,7 +56,7 @@ t_z = 10*np.linspace(0, 2*np.pi, n)
 # method = 'ball-to-ball-squared'
 # method = 'mahalanobis'
 
-for scene_name in ['stonehenge', 'statues']:
+for scene_name in ['stonehenge']:
     for method in ['ball-to-ellipsoid', 'ball-to-ball-squared', 'mahalanobis']:
 
         if scene_name == 'old_union':
@@ -66,9 +66,9 @@ for scene_name in ['stonehenge', 'statues']:
             path_to_gsplat = Path('outputs/old_union2/splatfacto/2024-09-02_151414/config.yml')
 
         elif scene_name == 'stonehenge':
-            radius_z = 0.03
-            radius_config = 1.12
-            mean_config = np.array([-0.21, -0.132, 0.16])
+            radius_z = 0.01
+            radius_config = 0.784/2
+            mean_config = np.array([-0.08, -0.03, 0.05])
             path_to_gsplat = Path('outputs/stonehenge/splatfacto/2024-09-11_100724/config.yml')
 
         elif scene_name == 'statues':
