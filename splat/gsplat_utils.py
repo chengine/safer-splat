@@ -32,7 +32,7 @@ class GSplatLoader():
         self.scales = self.splat.pipeline.model.scales.detach().clone() 
         self.scales = torch.exp(self.scales)
 
-        self.cov_inv = compute_cov(self.rots, 1 / self.scales)
+        self.covs_inv = compute_cov(self.rots, 1 / self.scales)
         self.covs = compute_cov(self.rots, self.scales)
 
         self.colors = SH2RGB(self.splat.pipeline.model.features_dc.detach().clone())
@@ -73,7 +73,7 @@ class GSplatLoader():
         self.scales = torch.exp(self.scales)
 
         # Measure time for computing Sigma inverse
-        self.covs_inv = compute_cov(self.rots, 1 / self.scales)
+        self.covs_inv = compute_cov(self.rots, 1. / self.scales)
         self.covs = compute_cov(self.rots, self.scales)
 
         return 
@@ -93,7 +93,7 @@ class GSplatLoader():
 
         if distance_type == 'ball-to-ball':
             ball_radius = torch.max(self.scales, dim=-1)[0]
-            dist, grad, hess = batch_point_distance(x[..., :3], self.means)
+            dist, grad, hess = batch_point_distance(x[..., :3].squeeze(), self.means)
 
             h = dist - (ball_radius + radius + epsilon)
             grad_h = grad
@@ -103,7 +103,7 @@ class GSplatLoader():
 
         elif distance_type == 'ball-to-ball-squared': 
             ball_radius = torch.max(self.scales, dim=-1)[0]
-            squared_dist, grad, hess = batch_squared_point_distance(x[..., :3], self.means)
+            squared_dist, grad, hess = batch_squared_point_distance(x[..., :3].squeeze(), self.means)
 
             h = squared_dist - (ball_radius + radius + epsilon)**2
             grad_h = grad
@@ -112,7 +112,7 @@ class GSplatLoader():
             info = None
 
         elif distance_type == 'mahalanobis':
-            maha_dist, grad, hess = batch_mahalanobis_distance(x, self.means, self.covs_inv)
+            maha_dist, grad, hess = batch_mahalanobis_distance(x[..., :3].squeeze(), self.means, self.covs_inv)
 
             h = maha_dist - 1.
             grad_h = grad
