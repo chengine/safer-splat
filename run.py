@@ -39,10 +39,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # path_to_gsplat = Path('outputs/old_union2/splatfacto/2024-09-02_151414/config.yml')
 # path_to_gsplat = Path('outputs/statues/splatfacto/2024-09-11_095852/config.yml')
 # path_to_gsplat = Path('outputs/stonehenge/splatfacto/2024-09-11_100724/config.yml')
+# path_to_gsplat = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
 
 alpha = 5.
 beta = 1.
-radius = 0.015
+radius = 0.03
 dt = 0.05
 
 n = 100
@@ -56,7 +57,7 @@ t_z = 10*np.linspace(0, 2*np.pi, n)
 # method = 'ball-to-ball-squared'
 # method = 'mahalanobis'
 
-for scene_name in ['stonehenge']:
+for scene_name in ['flight']:
     for method in ['ball-to-ellipsoid', 'ball-to-ball-squared', 'mahalanobis']:
 
         if scene_name == 'old_union':
@@ -76,6 +77,13 @@ for scene_name in ['stonehenge']:
             radius_config = 0.475
             mean_config = np.array([-0.064, -0.0064, -0.025])
             path_to_gsplat = Path('outputs/statues/splatfacto/2024-09-11_095852/config.yml')
+
+        elif scene_name == 'flight':
+            radius_z = 0.06
+            radius_config = 0.545/2
+            mean_config = np.array([0.19, 0.01, -0.02])
+            path_to_gsplat = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
+
 
         print(f"Running {scene_name} with {method}")
 

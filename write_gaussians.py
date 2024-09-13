@@ -24,8 +24,8 @@ def convert_sh_to_rgb(sh):
 # %%
 
 # path_to_gsplat = Path('outputs/stonehenge/splatfacto/2024-09-11_100724/config.yml')
-path_to_gsplat = Path('outputs/statues/splatfacto/2024-09-11_095852/config.yml')
-
+# path_to_gsplat = Path('outputs/statues/splatfacto/2024-09-11_095852/config.yml')
+path_to_gsplat = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
 gs_pipeline = GaussianSplat(path_to_gsplat, dataset_mode='train')
 
 poses = gs_pipeline.get_poses()
