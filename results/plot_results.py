@@ -43,7 +43,6 @@ font = {
         'size'   : 15}
 
 matplotlib.rc('font', **font)
-matplotlib.rcParams["hatch.color"]  = 'k'
 # for i, scene_name in enumerate(scene_names):
 #     for j, method in enumerate(methods):
 #         save_fp = str(Path(os.getcwd()).parent.absolute()) + f'/trajs/{scene_name}_{method}.json'
@@ -144,6 +143,12 @@ matplotlib.rcParams["hatch.color"]  = 'k'
 
 #%%
 
+font = {
+        'family': 'Arial',
+        'weight' : 'bold',
+        'size'   : 20}
+matplotlib.rc('font', **font)
+
 def adjust_lightness(color, amount=0.5):
     import matplotlib.colors as mc
     import colorsys
@@ -210,16 +215,17 @@ for j, method in enumerate(methods):
     qp_solve_times = np.array(qp_solve_times)
     prune_times = np.array(prune_times)
 
-    ax.plot(x_axis[:-1], (qp_solve_times+ cbf_solve_times + prune_times), color=col, linewidth=3, marker='o', label=method)
+    ax.plot(x_axis[:-1], (qp_solve_times+ cbf_solve_times + prune_times), color=col, linewidth=6, marker='o', label=method)
 
-    ax.bar(x_axis[:-1]+offset, qp_solve_times, width=bar_width, alpha=0.5, hatch='o', color= adjust_lightness(col, 0.25), linewidth=3, label='qp')
-    ax.bar(x_axis[:-1]+offset, cbf_solve_times, bottom=qp_solve_times, width=bar_width, alpha=0.5, color=adjust_lightness(col, 0.5), hatch='o', linewidth=3, ec='k', label='cbf')
-    ax.bar(x_axis[:-1]+offset, prune_times, bottom=cbf_solve_times + qp_solve_times, width=bar_width, alpha=0.5, color = adjust_lightness(col, 0.9), hatch='x', linewidth=3, ec='k', label='prune')
+    ax.bar(x_axis[:-1]+offset, qp_solve_times, width=bar_width, alpha=0.5, hatch='o', color= adjust_lightness(col, 0.5), linewidth=3, label='qp')
+    ax.bar(x_axis[:-1]+offset, cbf_solve_times, bottom=qp_solve_times, width=bar_width, alpha=0.5, color=adjust_lightness(col, 0.75), hatch='o', linewidth=3, ec='k', label='cbf')
+    ax.bar(x_axis[:-1]+offset, prune_times, bottom=cbf_solve_times + qp_solve_times, width=bar_width, alpha=0.5, color = adjust_lightness(col, 1.), hatch='x', linewidth=3, ec='k', label='prune')
     # ax.bar(x_axis[:-1]+offset, total_times - prune_times, bottom=prune_times, width=bar_width, alpha=0.5, color=adjust_lightness(col, 0.8), linewidth=3, ec='k', label='total')
 
 # ax[0].set_title('Success Rate (Higher is better)', fontsize=20, fontweight='bold')
 for location in ['left', 'right', 'top', 'bottom']:
     ax.spines[location].set_linewidth(4)
+ax.set_ylabel('Time (s)', fontsize=25, fontweight='bold')
 # ax.legend()
 plt.savefig(f'timings.pdf')
 
