@@ -92,7 +92,6 @@ for scene_name in ['statues']:
         print('Time to load GSplat:', time.time() - tnow)
 
         dynamics = DoubleIntegrator(device=device, ndim=3)
-    
         ### Create configurations
 
         # For flightroom
