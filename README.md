@@ -15,7 +15,7 @@ in IEEE Transactions on Robotics (2024)
 
 <p align="center">
 
-  <h1 align="center"><img src="imgs/cat.jpg" width="25"> SAFER-Splat: Simultaneous Action Filtering and Environment Reconstruction</h1>
+  <h1 align="center"><img src="imgs/icon.svg" width="25"> SAFER-Splat: Simultaneous Action Filtering and Environment Reconstruction</h1>
   <p align="center"> 
     <a href="https://msl.stanford.edu/people/timchen"><strong>Timothy Chen</strong><sup>1</sup></a>
     ·
