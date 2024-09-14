@@ -57,7 +57,7 @@ t_z = 10*np.linspace(0, 2*np.pi, n)
 # method = 'mahalanobis'
 
 for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
-    for method in ['ball-to-pt-squared']:
+    for method in ['ball-to-pt-squared', 'ball-to-ellipsoid', 'ball-to-ball-squared', 'mahalanobis']:
 
         if scene_name == 'old_union':
             radius_z = 0.01
@@ -131,6 +131,7 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
             u_des_values = []
             safety = []
             sucess = []
+            feasible = []
 
             total_time = []
 
@@ -153,6 +154,12 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
                 torch.cuda.synchronize()
                 total_time.append(time.time() - tnow)
 
+                if cbf.solver_success == False:
+                    print("Solver failed")
+                    sucess.append(False)
+                    feasible.append(False)
+                    break
+
                 x_ = x
                 x = double_integrator_dynamics(x,u)*dt + x
 
@@ -166,21 +173,20 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
                 # record min value of h
                 safety.append(torch.min(h).item())
 
-                if torch.min(h) < 0:
-                    print("Safety constraint violated")
-                    break
-
                 # It's gotten stuck
                 if torch.norm(x - x_) < 0.001:
-                    if torch.norm(x - goal) < 0.001:
+                    if torch.norm(x_ - goal) < 0.001:
                         print("Reached Goal")
                         sucess.append(True)
+                        feasible.append(True)
                     else:
                         sucess.append(False)
+                        feasible.append(True)
                     break
 
-            if i >= n_steps - 1:
-                sucess.append(True)
+                if i >= n_steps - 1:
+                    sucess.append(True)
+                    feasible.append(True)
 
             traj = torch.stack(traj)
             u_values = np.array(u_values)
@@ -193,6 +199,7 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
             'time_step': times,
             'safety': safety,
             'sucess': sucess,
+            'feasible': feasible,
             'total_time': total_time,
             'cbf_solve_time': cbf.times_cbf,
             'qp_solve_time': cbf.times_qp,
