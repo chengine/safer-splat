@@ -132,7 +132,6 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
             safety = []
             sucess = []
             feasible = []
-
             total_time = []
 
             cbf = CBF(gsplat, dynamics, alpha, beta, radius, distance_type=method)
