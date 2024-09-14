@@ -3,13 +3,13 @@ geometries
 trajectories
 data
 outputs
+!*.imgs
 
 # Images
 *.png 
 *.jpg
 *.jpeg
 *.gif
-*.svg
 *.mp4
 
 
