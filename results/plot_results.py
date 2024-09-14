@@ -316,7 +316,7 @@ for location in ['left', 'right', 'top', 'bottom']:
 ax[1, 0].set_ylim(0, 10.)
 # ax[1, 0].set_yscale('log')
 
-ax[0, 0].set_title('Computation Time (s)' , fontsize=25, fontweight='bold')
+ax[0, 0].set_title(r'Computation Time (s) $\downarrow$' , fontsize=25, fontweight='bold')
 ax[0, 0].get_xaxis().set_visible(False)
 ax[0, 0].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5)
 for location in ['left', 'right', 'top', 'bottom']:
