@@ -36,10 +36,6 @@ from tqdm import tqdm
 import json
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# path_to_gsplat = Path('outputs/old_union2/splatfacto/2024-09-02_151414/config.yml')
-# path_to_gsplat = Path('outputs/statues/splatfacto/2024-09-11_095852/config.yml')
-# path_to_gsplat = Path('outputs/stonehenge/splatfacto/2024-09-11_100724/config.yml')
-# path_to_gsplat = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
 
 alpha = 5.
 beta = 1.
@@ -52,14 +48,8 @@ n_steps = 500
 t = np.linspace(0, 2*np.pi, n)
 t_z = 10*np.linspace(0, 2*np.pi, n)
 
-# scene_name = 'old_union'
-# method = 'ball-to-ellipsoid'
-# method = 'ball-to-ball-squared'
-# method = 'mahalanobis'
 
-for scene_name in ['statues']:
-    for method in ['ball-to-ball-squared']:
-
+for scene_name in ['flight']:
         if scene_name == 'old_union':
             radius_z = 0.01
             radius_config = 1.35/2
@@ -84,8 +74,7 @@ for scene_name in ['statues']:
             mean_config = np.array([0.19, 0.01, -0.02])
             path_to_gsplat = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
 
-
-        print(f"Running {scene_name} with {method}")
+        print(f"Running {scene_name} with cbf from depth-point cloud.")
 
         tnow = time.time()
         gsplat = GSplatLoader(path_to_gsplat, device)
@@ -94,21 +83,6 @@ for scene_name in ['statues']:
         dynamics = DoubleIntegrator(device=device, ndim=3)
     
         ### Create configurations
-
-        # For flightroom
-        # x = torch.tensor([0.0, 0.1, 0.05, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-        # x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
-        # x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0n.0, 0.0], device=device).to(torch.float32)
-        # xf = torch.tensor([0.5, 0.09, -0.04, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
-        # For old union
-        # x = torch.tensor([-0.1, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-        # xf = torch.tensor([0.35, -0.2, -0.14, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
-        # x = torch.tensor([0.19, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-        # xf = torch.tensor([-0.28, -0.2, -0.14, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
         x0 = np.stack([radius_config*np.cos(t), radius_config*np.sin(t), radius_z * np.sin(t_z)], axis=-1)     # starting positions
         x0 = x0 + mean_config
 
@@ -208,5 +182,3 @@ for scene_name in ['statues']:
 
         with open(f'trajs/{scene_name}_{method}.json', 'w') as f:
             json.dump(data, f, indent=4)
-
-# %%
