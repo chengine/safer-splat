@@ -34,6 +34,8 @@ class CBF():
         self.times_qp = []
         self.times_prune = []
 
+        print(distance_type)
+
     # TODO: This function assumes relative degree 2, we should make it account for single-integrator dynamics too.
     def get_QP_matrices(self, x, u_des, minimal=True):
         # Computes the A and b matrices for the QP A u <= b

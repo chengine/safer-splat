@@ -43,7 +43,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 alpha = 5.
 beta = 1.
-radius = 0.03
 dt = 0.05
 
 n = 100
@@ -57,29 +56,33 @@ t_z = 10*np.linspace(0, 2*np.pi, n)
 # method = 'ball-to-ball-squared'
 # method = 'mahalanobis'
 
-for scene_name in ['statues']:
-    for method in ['ball-to-ball-squared']:
+for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
+    for method in ['ball-to-pt-squared']:
 
         if scene_name == 'old_union':
             radius_z = 0.01
+            radius = 0.01
             radius_config = 1.35/2
             mean_config = np.array([0.14, 0.23, -0.15])
             path_to_gsplat = Path('outputs/old_union2/splatfacto/2024-09-02_151414/config.yml')
 
         elif scene_name == 'stonehenge':
             radius_z = 0.01
+            radius = 0.015
             radius_config = 0.784/2
             mean_config = np.array([-0.08, -0.03, 0.05])
             path_to_gsplat = Path('outputs/stonehenge/splatfacto/2024-09-11_100724/config.yml')
 
         elif scene_name == 'statues':
             radius_z = 0.03    
+            radius = 0.03
             radius_config = 0.475
             mean_config = np.array([-0.064, -0.0064, -0.025])
             path_to_gsplat = Path('outputs/statues/splatfacto/2024-09-11_095852/config.yml')
 
         elif scene_name == 'flight':
             radius_z = 0.06
+            radius = 0.03
             radius_config = 0.545/2
             mean_config = np.array([0.19, 0.01, -0.02])
             path_to_gsplat = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
@@ -159,12 +162,16 @@ for scene_name in ['statues']:
                 u_des_values.append(u_des.cpu().numpy())
 
                 # record some stuff
-                h, grad_h, hess_h, info = gsplat.query_distance(x, radius=radius)
+                h, grad_h, hess_h, info = gsplat.query_distance(x, radius=radius, distance_type=None)
                 # record min value of h
                 safety.append(torch.min(h).item())
 
+                if torch.min(h) < 0:
+                    print("Safety constraint violated")
+                    break
+
                 # It's gotten stuck
-                if torch.norm(x - x_) < 0.0001:
+                if torch.norm(x - x_) < 0.001:
                     if torch.norm(x - goal) < 0.001:
                         print("Reached Goal")
                         sucess.append(True)
