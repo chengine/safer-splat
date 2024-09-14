@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="SAFER-Splat: Safety with Control Barrier 
+        Functions in Online Gaussian Splatting Maps">
+  <meta name="keywords" content="Gaussian Splatting, Safety, Collision Avoidance, State Estimation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAFER-Splat: Safety with Control Barrier Functions in Online Gaussian Splatting Maps</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://mikh3x4.github.io/nerf-navigation/">
+            NeRF-Nav
+          </a>
+          <a class="navbar-item" href="https://chengine.github.io/catnips/">
+            CATNIPS
+          </a>
+          <a class="navbar-item" href="https://chengine.github.io/splatnav/">
+            Splat-Nav
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title"><img src="./static/images/splat_icon.svg" width="40">
+            SAFER-Splat: Safety with Control Barrier Functions in Online Gaussian Splatting Maps </h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://msl.stanford.edu/people/timchen">Timothy Chen</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://arm.stanford.edu/people/aiden-swann">Aiden Swann</a><sup>1</sup>,</span>
+            <span class="author-block">
+                <a href="https://msl.stanford.edu/people/javieryu">Javier Yu</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a>Ola Shorinwa</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a>Riku Murai</a><sup>2</sup>,</span>
+            <span class="author-block">
+              <a href="https://arm.stanford.edu/people/monroe-kennedy">Monroe Kennedy III</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://web.stanford.edu/~schwager/">Mac Schwager</a><sup>1</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Stanford University,</span>
+            <span class="author-block"><sup>2</sup>Imperial College London</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <!-- <span class="link-block">
+                <a href="https://ieeexplore.ieee.org/document/10494911"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span> -->
+              <span class="link-block">
+                <a href="/"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/chengine/safer-splat"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a href="https://drive.google.com/drive/u/0/folders/1BTFcv5xg9_r7uPATnp7u911XuF_bRyxI"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Data</span>
+                  </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <!-- <video id="teaser" autoplay muted loop playsinline height="100%">
+        <source src="./static/videos/teaser.mp4" type="video/mp4">
+      </video> -->
+      <img src="./static/images/title.png"
+      class="interpolation-image"
+      alt="Interpolate start reference image."/>
+      <p class="has-text-justified"></p>
+      <span class="splatnav">SAFER-Splat</span> 
+      is a real-time, scalable, and minimally invasive action filter, based on control barrier functions, 
+      for safe robotic navigation in a detailed map constructed at runtime using Gaussian Splatting.
+    </div>
+  </div>
+</section>
+
+<!-- <section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column">
+        <div class="content">
+          <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+            <source src="./static/videos/OL1.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="columns is-centered">
+          <div class="column content">
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/OL2.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h2 class="title has-text-centered">
+    Robust, real-time navigation in Gaussian Splats
+  </h2>
+</section> -->
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            SAFER-Splat (<u>S</u>imultaneous <u>A</u>ction <u>F</u>iltering and <u>E</u>nvironment <u>R</u>econstruction)
+            is a real-time, scalable, and minimally invasive action filter, based on control barrier functions, 
+            for safe robotic navigation in a detailed map constructed at runtime using Gaussian Splatting. 
+            We propose a novel Control Barrier Function (CBF) that not only induces safety with respect to all
+            Gaussian primitives in the scene, but when synthesized into a controller, is capable of processing 
+            millions of Gaussians while maintaining a minimal memory footprint and operating at 15 Hz during 
+            online Splat training. 
+            To showcase the safety filter, we also introduce SplatBridge, an open-source ROS bridge for real-time 
+            GSplat training for robots.  We demonstrate the safety and robustness of our pipeline first in simulation,
+            where our method is 20-50x faster, safer, and less conservative than competing methods based on neural 
+            radiance fields. We then demonstrate simultaneous GSplat mapping and safety filtering on a drone hardware 
+            platform using only on-board perception. We verify that under teleoperation a human pilot cannot invoke 
+            a collision.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+
+<!-- <section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Why Gaussian Splats?</h2>
+        <div class="content has-text-justified">
+          <p>
+            Gaussian Splats tout very high photorealistic reconstruction of the scene. Moreover, they have much better collision geometry 
+            than their Neural Radiance Field (NeRF) counterparts, which is necessary to reduce the model-to-real gap. They are also
+            faster to train and render, and can be supervised from just RGB images with optional depth, making it easier to deploy with less expensive sensors. 
+          </p>
+          <img src="./static/images/NeRF_vs_GS.png">
+        </div>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+<!-- <section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3">Pose Estimation</h2>
+          <p>
+            We formulate a constrained maximum a-posteriori (MAP) optimization problem 
+            to compute an estimate of the robot’s pose that satisfies the safety constraints 
+            (defined by the polytope) at each timestep. 
+            To improve tractability of the MAP problem, we utilize a two-phase, 
+            online pose estimation procedure: 
+            in the first phase, we utilize an Unscented Kalman Filer (UKF) to compute an 
+            estimate of the robot’s pose; in an optional second phase,
+            we refine this estimate by solving a constrained optimization problem to satisfy an 
+            approximation of the MAP problem.
+          </p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="content">
+          <img src="./static/images/pipeline.png">
+        </div>
+      </div>
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3">Safe Planning</h2>
+          <p>This is the content for column 3.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3">A Fast Ellipsoid-Ellipsoid Collision Test</h2>
+          <p>
+            We equate a Neural Radiance Field (NeRF) to a Poisson Point Process (PPP) by deriving an equivalent rendering equation for the PPP. The derivation is general with respect to the camera parameters. We then propose a probabilistic safety
+            constraint built from the PPP and show that it can be computed solely from the NeRF.
+          </p>
+          <img src="./static/images/teaser_filling.png"
+          class="interpolation-image"
+          alt="Interpolate start reference image."/>
+        </div>
+      </div>
+
+      <div class="column">
+        <h2 class="title is-3">Corridor and Spline Generation</h2>
+        <div class="columns is-centered">
+          <div class="column content">
+            <p>
+              Using probabilistically safe safety constraint, we construct a voxel grid representation
+              of navigable space called an Unsafe Robot Region (PURR). This representation facilitates fast and safe trajectory optimization. 
+            </p>
+            <img src="./static/images/Flightroom explainer.png"
+            class="interpolation-image"
+            alt="Interpolate start reference image."/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3">Coarse Pose Initialization</h2>
+          <p>
+            Splat-Loc requires an initial estimate of the robot's pose. In the event that such
+            an estimate is unavailable, we present a pose initialization procedure built on the
+            point-cloud representation of the environment inherent to the Gaussian Splatting
+            scene representation. Our approach assumes that the robot has an onboard
+            RGB-D camera with known camera intrinsics. We use
+            the RGB-D image and camera intrinsics to generate a point
+            cloud (in the camera frame). In addition, we generate a point
+            cloud of the scene from the GSplat using the ellipsoid means, enabling the formulation 
+            of a point-cloud registration problem, which we solve to compute an estimate of the 
+            initial pose of the robot.
+          </p>
+        </div>
+      </div>
+
+      <div class="column">
+        <h2 class="title is-3">Online Fine Pose Localization</h2>
+        <div class="columns is-centered">
+          <div class="column content">
+            <p>
+              For online pose estimation, given an estimate of the robot’s pose, 
+              we first render a set of 2D images of the GSplat map within a local 
+              neighborhood. We identify keypoints and the associated descriptors 
+              for points in these map images and the robot’s RGB image using 
+              <a 
+              href="https://openaccess.thecvf.com/content_cvpr_2018_workshops/papers/w9/DeTone_SuperPoint_Self-Supervised_Interest_CVPR_2018_paper.pdf">
+                SuperPoint
+              </a>, 
+              and match features between 
+              both images using 
+              <a
+              href="https://openaccess.thecvf.com/content/ICCV2023/papers/Lindenberger_LightGlue_Local_Feature_Matching_at_Light_Speed_ICCV_2023_paper.pdf">
+                LightGlue
+              </a>.
+              We utilize 
+              RANSAC to remove outliers from the set of matched features to yield the 
+              final correspondence set. Finally, we take the map points and project 
+              them into the 3D scene using the perspective projection model, the camera 
+              intrinsics, and the rendered depth from GSplat, to estimate the robot's pose 
+              from the Perspective-n-Point (PnP) problem.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <img src="./static/images/pose_explainer.png"
+    class="interpolation-image"
+    alt="Interpolate start reference image."/>
+  </div>
+</section> -->
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Hardware Experiments</h2>
+
+        <h3 class="title is-4"></h3>
+        <div class="content has-text-justified">
+          <p>
+            In the hardware experiments, a human pilot attempts to force a collision of the drone, 
+            in the scenes shown here:
+          </p>
+          <img src="./static/images/gt_and_renders.png"
+          class="interpolation-image"
+          alt="Interpolate start reference image."/>
+        </div>
+        <br/>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered">
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3">Scene I</h2>
+          <p>
+            Although the human pilot tries to force a collision,
+            the CBF preserves the drone's safety by filtering the control inputs
+            sent to the drone.
+          </p>
+          <div class="columns is-centered">
+
+            <div class="column">
+              <div class="content">        
+                <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                  <source src="./static/videos/trial2_clip.mov"
+                          type="video/mp4">
+                </video>
+              </div>
+            </div>
+        
+            <div class="column">
+              <div class="columns is-centered">
+                <div class="column content">
+                  <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                    <source src="./static/videos/trial3_clipped.mp4"
+                            type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+<!-- 
+      <div class="column">
+        <h2 class="title is-3">Scene II</h2>
+        <div class="columns is-centered">
+          <div class="column content">
+            <p>
+              Although the human pilot tries to force a collision,
+              the CBF preserves the drone's safety by filtering the control inputs
+              sent to the drone.
+            </p>
+            <div class="columns is-centered">
+
+              <div class="column">
+                <div class="content">        
+                  <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                    <source src="./static/videos/trial4_trim.mov"
+                            type="video/mp4">
+                  </video>
+                </div>
+              </div>
+          
+              <div class="column">
+                <div class="columns is-centered">
+                  <div class="column content">
+                    <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                      <source src="./static/videos/trial4_trim.mov"
+                              type="video/mp4">
+                    </video>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div> -->
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- <div class="columns is-centered">
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3">Scene I</h2>
+          <p>
+            Although the human pilot tries to force a collision,
+            the CBF preserves the drone's safety by filtering the control inputs
+            sent to the drone.
+          </p>
+          <div class="columns is-centered">
+
+            <div class="column">
+              <div class="content">        
+                <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                  <source src="./static/videos/trial2_clip.mov"
+                          type="video/mp4">
+                </video>
+              </div>
+            </div>
+        
+            <div class="column">
+              <div class="columns is-centered">
+                <div class="column content">
+                  <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                    <source src="./static/videos/trial3_clipped.mp4"
+                            type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div> -->
+
+      <div class="column">
+        <h2 class="title is-3">Scene II</h2>
+        <div class="columns is-centered">
+          <div class="column content">
+            <p>
+              Although the human pilot tries to force a collision,
+              the CBF preserves the drone's safety by filtering the control inputs
+              sent to the drone.
+            </p>
+            <div class="columns is-centered">
+
+              <div class="column">
+                <div class="content">        
+                  <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                    <source src="./static/videos/trial4_trim.mov"
+                            type="video/mp4">
+                  </video>
+                </div>
+              </div>
+          
+              <div class="column">
+                <div class="columns is-centered">
+                  <div class="column content">
+                    <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+                      <source src="./static/videos/trial4_trim.mov"
+                              type="video/mp4">
+                    </video>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>
+      @misc{chen2024splatnav,
+        title={Splat-Nav: Safe Real-Time Robot Navigation in Gaussian Splatting Maps}, 
+        author={Timothy Chen and Aiden Swann and Javier Yu and Ola Shorinwa and Riku Murai and Monroe Kennedy III and Mac Schwager},
+        year={2024},
+        eprint={},
+        archivePrefix={arXiv},
+        primaryClass={cs.RO},
+        url={}, 
+        }
+    </code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>. This webpage template is from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>
+            . We sincerely thank <a href="https://keunhong.com/">Keunhong Park</a> for developing and open-sourcing this template.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
