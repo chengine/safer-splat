@@ -56,8 +56,8 @@ t_z = 10*np.linspace(0, 2*np.pi, n)
 # method = 'ball-to-ball-squared'
 # method = 'mahalanobis'
 
-for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
-    for method in ['ball-to-pt-squared', 'ball-to-ellipsoid', 'ball-to-ball-squared', 'mahalanobis']:
+for scene_name in ['old_union']:
+    for method in ['ball-to-ellipsoid']:
 
         if scene_name == 'old_union':
             radius_z = 0.01
@@ -87,6 +87,13 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
             mean_config = np.array([0.19, 0.01, -0.02])
             path_to_gsplat = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
 
+        elif scene_name == 'flight-low-res':
+            radius_z = 0.06
+            radius = 0.03
+            radius_config = 0.545/2
+            mean_config = np.array([0.19, 0.01, -0.02])
+            path_to_gsplat = 'flightroom_gaussians_sparse_deep.json'
+            path_to_gsplat_high_res = Path('outputs/flight/splatfacto/2024-09-12_172434/config.yml')
 
         print(f"Running {scene_name} with {method}")
 
@@ -94,23 +101,11 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
         gsplat = GSplatLoader(path_to_gsplat, device)
         print('Time to load GSplat:', time.time() - tnow)
 
+        if scene_name == 'flight-low-res':
+            gsplat_high_res = GSplatLoader(path_to_gsplat_high_res, device)
+
         dynamics = DoubleIntegrator(device=device, ndim=3)
         ### Create configurations
-
-        # For flightroom
-        # x = torch.tensor([0.0, 0.1, 0.05, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-        # x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
-        # x = torch.tensor([0.0, 0.0, 0.0, 0.0, 0n.0, 0.0], device=device).to(torch.float32)
-        # xf = torch.tensor([0.5, 0.09, -0.04, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
-        # For old union
-        # x = torch.tensor([-0.1, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-        # xf = torch.tensor([0.35, -0.2, -0.14, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
-        # x = torch.tensor([0.19, 0.47, -0.17, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-        # xf = torch.tensor([-0.28, -0.2, -0.14, 0.0, 0.0, 0.0], device=device).to(torch.float32)
-
         x0 = np.stack([radius_config*np.cos(t), radius_config*np.sin(t), radius_z * np.sin(t_z)], axis=-1)     # starting positions
         x0 = x0 + mean_config
 
@@ -168,7 +163,10 @@ for scene_name in ['statues', 'flight', 'stonehenge', 'old_union']:
                 u_des_values.append(u_des.cpu().numpy())
 
                 # record some stuff
-                h, grad_h, hess_h, info = gsplat.query_distance(x, radius=radius, distance_type=None)
+                if scene_name == 'flight-low-res':
+                    h, grad_h, hess_h, info = gsplat_high_res.query_distance(x, radius=radius, distance_type='ball-to-ellipsoid')
+                else:
+                    h, grad_h, hess_h, info = gsplat.query_distance(x, radius=radius, distance_type='ball-to-ellipsoid')
                 # record min value of h
                 safety.append(torch.min(h).item())
 
