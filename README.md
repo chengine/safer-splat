@@ -2,8 +2,8 @@
 Repository for the [SAFER-Splat website](https://chengine.github.io/safer-splat/).
 ```
 
-      @misc{chen2024splatnav,
-        title={Splat-Nav: Safe Real-Time Robot Navigation in Gaussian Splatting Maps}, 
+      @misc{chen2024safer-splat,
+        title={SAFER-Splat: Safety with Control Barrier Functions in Online Gaussian Splatting Maps}, 
         author={Timothy Chen and Aiden Swann and Javier Yu and Ola Shorinwa and Riku Murai and Monroe Kennedy III and Mac Schwager},
         year={2024},
         eprint={},
