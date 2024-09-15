@@ -218,54 +218,6 @@ def find_safe_action(robot, pos_vel_state, h, intended_action, max_runs=50):
     return intended_action, h, False
 
 
-
-    # orient_action = torch.zeros(6).to(device)
-    # if direction in ['up', 'down']:
-    #     unit = intended_action * torch.mm(pose[:3, :3].float(), u).squeeze().to(device)
-    #     print(unit)
-    #     orient_action[0] = unit[0]
-    #     orient_action[1] = unit[1]
-    #     orient_action[2] = unit[2]
-    # elif direction in ['left', 'right']:
-    #     orient_action[5] = intended_action * 10
-    # new_state, new_v = update_dynamics(state, robot.v, orient_action)
-    # new_state = new_state.unsqueeze(0)
-    # new_pose = state_to_pose(new_state)
-    # new_h = d - robot.predict_observation(new_pose).min().unsqueeze(0) + beta * torch.norm(new_v, p=2)
-    # best_action = torch.zeros(6).to(device)
-    # # print(new_h, h)
-    # if new_h <= alpha * h:
-    #     # print('Intended action {} is safe'.format(orient_action))
-    #     # print('intervention = 0')
-    #     return orient_action, new_h, True
-    # while True:
-    #     batch_action = torch.zeros((10, 6)).to(device)
-    #     if direction in {'up', 'down'}:
-    #         for j in range(10):
-    #             value = np.random.normal(mu, sigma)
-    #             unit = value * torch.mm(pose[:3, :3].float(), u).squeeze().to(device)
-    #             batch_action[j][0] = unit[0]
-    #             batch_action[j][1] = unit[1]
-    #             batch_action[j][2] = unit[2]
-    #     else:
-    #         for j in range(10):
-    #             batch_action[j][5] = np.random.normal(mu, sigma) * 10
-    #     batch_new_state, batch_new_v = update_dynamics(state, robot.v, batch_action)
-    #     batch_new_pose = state_to_pose(batch_new_state)
-    #     # print(f'shapes d: {d}, v: {batch_new_v.shape} min. obs: {robot.predict_observation(batch_new_pose).min(dim=-1)[0].min(dim=-1)[0]}')
-    #     batch_new_h = d - robot.predict_observation(batch_new_pose).min(dim=-1)[0].min(dim=-1)[0] + beta * torch.norm(batch_new_v, dim=1, p=2)
-    #     for j in range(10):
-    #         if batch_new_h[j] <= alpha * h:
-    #             if torch.norm(best_action, p=2) == 0 or torch.norm(batch_action[j] - orient_action, p=2) < torch.norm(best_action - orient_action, p=2):
-    #                 best_action = batch_action[j]
-    #                 new_h = batch_new_h[j]
-    #     if torch.norm(best_action, p=2) > 0:
-    #         print('Intended action {} is unsafe, a recommended substitute is {}'.format(orient_action, best_action))
-    #         print('intervention =', float(torch.norm(orient_action - best_action, p=2)))
-    #         return best_action, new_h, False
-    # #print('Fail to find a safe action')
-    # #return best_action, h, False
-
 if __name__ == '__main__':
     
     # option to visualize the method
@@ -283,7 +235,7 @@ if __name__ == '__main__':
     # create parent directory, if necessary
     data_output_path.mkdir(exist_ok=True, parents=True)
     
-    for scene_name in ['statues']: #['old_union', 'stonehenge', 'statues', 'flight']:
+    for scene_name in ['old_union', 'stonehenge', 'statues', 'flight']:
         for method in ['cbf_nerf']:
             try:
                 # base path to outputs
@@ -395,25 +347,11 @@ if __name__ == '__main__':
                         tnow = time.time()
                         torch.cuda.synchronize()
                         
-                        # update the robot's position state
-                        # We do not consider the orientation (keeping it fixed at zero).
-                        # robot_pos_state[:3] = x[:3]
-                        
                         # current pose (position state in SE(3))
-                        # pose = state_to_pose(robot_pos_state.unsqueeze(0)).squeeze()
                         pose = state_to_pose(x[:3]).squeeze()
                         
                         # update the robot's velocity
-                        # robot_vel_state[:3] = x[3:]
-                        
-                        # update the robot's velocity
-                        # robot.v = robot_vel_state
                         robot.v = x[3:]
-                        
-                        # if i >= 241:
-                        #     breakpoint()
-                        #     import pdb
-                        #     pdb.set_trace()
                         
                         # render the depth image
                         try:
@@ -427,10 +365,8 @@ if __name__ == '__main__':
                                                         h=d - depth.min() + beta * torch.norm(robot.v, p=2), 
                                                         intended_action=u_des,
                         )
-                                                        #  , #torch.cat((u_des, torch.zeros(3, device=device)))[..., None],
-                                                        #  direction='up')
-                        
-                        print(f'u: {u}, u_des: {u_des}')
+                                                      
+                        # print(f'u: {u}, u_des: {u_des}')
                         
                         # extract the control inputs for the position states
                         u = u[:3]
@@ -448,10 +384,7 @@ if __name__ == '__main__':
                         u_values.append(u.cpu().numpy())
                         u_des_values.append(u_des.cpu().numpy())
 
-                        # # record some stuff
-                        # h, grad_h, hess_h, info = gsplat.query_distance(x, radius=radius)
-                        # # record min value of h
-                        # safety.append(torch.min(h).item())
+                        # record some stuff
                         print(f'State error: {torch.norm(x - goal)}')
 
                         # It's gotten stuck
@@ -468,7 +401,6 @@ if __name__ == '__main__':
                             sucess.append(False)
                             break
                             
-
                     if i >= n_steps - 1:
                         sucess.append(True)
 
@@ -477,16 +409,13 @@ if __name__ == '__main__':
                     u_des_values = np.array(u_des_values)
 
                     data = {
-                    'traj': traj.cpu().numpy().tolist(),
-                    'u_out': u_values.tolist(),
-                    'u_des': u_des_values.tolist(),
-                    'time_step': times,
-                    # 'safety': safety,
-                    'sucess': sucess,
-                    'total_time': total_time,
-                    # 'cbf_solve_time': cbf.times_cbf,
-                    # 'qp_solve_time': cbf.times_qp,
-                    # 'prune_time': cbf.times_prune,
+                        'traj': traj.cpu().numpy().tolist(),
+                        'u_out': u_values.tolist(),
+                        'u_des': u_des_values.tolist(),
+                        'time_step': times,
+                        # 'safety': safety,
+                        'sucess': sucess,
+                        'total_time': total_time,
                     }
 
                     total_data.append(data)
