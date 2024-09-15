@@ -270,11 +270,7 @@ for i, scene_name in enumerate(scene_names):
             ax[0, 0].bar(i + 0.75*j/len(methods) + 0.25/2, prune_time.mean(), bottom=cbf_solve_time.mean() + qp_solve_time.mean(), width=0.15, color = adjust_lightness(col, 1.), linewidth=3, hatch='x', ec='k', label='prune')
 
         if safety is not None:
-            if non_degenerate > 20:
-                marking = None
-            else:
-                marking = 'x'
-
+            marking = None
             errors = np.abs(safety.mean().reshape(-1, 1) - np.array([safety.min(), safety.max()]).reshape(-1, 1))
 
             ax[0, 1].errorbar(i + 0.75*j/len(methods) + 0.25/2, safety.mean().reshape(-1, 1), yerr=errors, color=col, capsize=15, elinewidth=5, alpha=0.5)
@@ -282,11 +278,7 @@ for i, scene_name in enumerate(scene_names):
             ax[0, 1].scatter(i +  + 0.75*j/len(methods) + 0.25/2 - 0.13, safety.mean(), s=200, color=col, alpha=1, marker='>')
             
         if u_diff is not None:
-            if non_degenerate > 20:
-                marking = None
-            else:
-                marking = 'x'
-
+            marking = None
             ax[1, 0].bar(i + 0.75*j/len(methods) + 0.25/2, u_diff.mean(), width=0.15, color=col, capsize=10, hatch=marking, edgecolor='black', linewidth=linewidth, 
                         linestyle='-', joinstyle='round', rasterized=True)
 
@@ -295,22 +287,25 @@ for i, scene_name in enumerate(scene_names):
 
 ax[1, 1].set_title(r'Success Rate $\uparrow$', fontsize=25, fontweight='bold')
 ax[1, 1].get_xaxis().set_visible(False)
-ax[1, 1].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5)
+ax[1, 1].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5, zorder=0)
+ax[1, 1].set_axisbelow(True)
 for location in ['left', 'right', 'top', 'bottom']:
     ax[1, 1].spines[location].set_linewidth(4)
 # ax[0, 0].legend(['ball-to-ellipsoid', 'ball-to-ball-squared'])
 
 ax[0, 1].set_title('Minimum Distance', fontsize=25, fontweight='bold')
 ax[0, 1].get_xaxis().set_visible(False)
-ax[0, 1].axhline(y = 0., color = 'k', linestyle = '--', linewidth=3, alpha=0.7) 
-ax[0, 1].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5)
+ax[0, 1].axhline(y = 0., color = 'k', linestyle = '--', linewidth=3, alpha=0.7, zorder=0) 
+ax[0, 1].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5, zorder=0)
+ax[0, 1].set_axisbelow(True)
 for location in ['left', 'right', 'top', 'bottom']:
     ax[0, 1].spines[location].set_linewidth(4)
 ax[0, 1].set_ylim(-.15, 1.)
 
 ax[1, 0].set_title(r'Control Difference $\downarrow$', fontsize=25, fontweight='bold')
 ax[1, 0].get_xaxis().set_visible(False)
-ax[1, 0].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5)
+ax[1, 0].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5, zorder=0)
+ax[1, 0].set_axisbelow(True)
 for location in ['left', 'right', 'top', 'bottom']:
     ax[1, 0].spines[location].set_linewidth(4)
 ax[1, 0].set_ylim(0, 10.)
@@ -318,7 +313,8 @@ ax[1, 0].set_ylim(0, 10.)
 
 ax[0, 0].set_title(r'Computation Time (s) $\downarrow$' , fontsize=25, fontweight='bold')
 ax[0, 0].get_xaxis().set_visible(False)
-ax[0, 0].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5)
+ax[0, 0].grid(axis='y', linewidth=2, color='k', linestyle='--', alpha=0.5, zorder=0)
+ax[0, 0].set_axisbelow(True)
 for location in ['left', 'right', 'top', 'bottom']:
     ax[0, 0].spines[location].set_linewidth(4)
 ax[0,0].set_yscale('log')
