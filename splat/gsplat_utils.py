@@ -24,7 +24,7 @@ class GSplatLoader():
 
         self.splat = GaussianSplat(gsplat_location,
                     test_mode= "inference",
-                    dataset_mode = 'test',
+                    dataset_mode = 'train',
                     device = self.device)
 
         self.means = self.splat.pipeline.model.means.detach().clone()
