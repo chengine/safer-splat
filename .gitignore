@@ -7,10 +7,8 @@ scripts
 results
 trajs
 debug
-!*.imgs
 
 # Images
-*.png 
 *.jpg
 *.jpeg
 *.gif
