@@ -76,7 +76,7 @@
             <span class="author-block">
                 <a href="https://msl.stanford.edu/people/javieryu">Javier Yu</a><sup>1*</sup>,</span>
             <span class="author-block">
-              <a href="https://msl.stanford.edu/people/olashorinwa">Ola Shorinwa</a><sup>1*</sup>,</span>
+              <a href="https://msl.stanford.edu/people/olashorinwa">Ola Shorinwa</a><sup>1</sup>,</span>
             <span class="author-block">
               <a href="https://rmurai.co.uk/">Riku Murai</a><sup>2</sup>,</span>
             <span class="author-block">
@@ -85,7 +85,6 @@
               <a href="https://web.stanford.edu/~schwager/">Mac Schwager</a><sup>1</sup>
             </span>
           </div>
-
           <div class="is-size-5 publication-authors">
             <span class="author-block"><sup>*</sup>The co-first authors contributed equally.</span>
             <br/>
@@ -142,6 +141,7 @@
   </div>
 </section>
 
+<!-- put video here-->
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
@@ -267,33 +267,31 @@
       </div>
     </div>
   </div>
-</section>
+</section> -->
 
 <section class="section">
   <div class="container is-max-desktop">
     <div class="columns is-centered">
       <div class="column">
         <div class="content">
-          <h2 class="title is-3">A Fast Ellipsoid-Ellipsoid Collision Test</h2>
+          <h2 class="title is-3">SplatBridge</h2>
           <p>
-            We equate a Neural Radiance Field (NeRF) to a Poisson Point Process (PPP) by deriving an equivalent rendering equation for the PPP. The derivation is general with respect to the camera parameters. We then propose a probabilistic safety
-            constraint built from the PPP and show that it can be computed solely from the NeRF.
+            SplatBridge is a ROS wrapper for real-time GSplat training from robot images and camera poses. 
           </p>
-          <img src="./static/images/teaser_filling.png"
+          <img src="./static/images/.png"
           class="interpolation-image"
           alt="Interpolate start reference image."/>
         </div>
       </div>
 
       <div class="column">
-        <h2 class="title is-3">Corridor and Spline Generation</h2>
+        <h2 class="title is-3">Control Barrier Function</h2>
         <div class="columns is-centered">
           <div class="column content">
             <p>
-              Using probabilistically safe safety constraint, we construct a voxel grid representation
-              of navigable space called an Unsafe Robot Region (PURR). This representation facilitates fast and safe trajectory optimization. 
-            </p>
-            <img src="./static/images/Flightroom explainer.png"
+              We propose a Control Barrier Function that numerically computes the distance between the robot and the Gaussian primitives in the scene. 
+              The method is scalable and guaranteed safe. 
+            <img src="./static/images/cbf explainer.png"
             class="interpolation-image"
             alt="Interpolate start reference image."/>
           </div>
@@ -303,6 +301,7 @@
   </div>
 </section>
 
+<!--
 <section class="section">
   <div class="container is-max-desktop">
     <div class="columns is-centered">
@@ -366,7 +365,7 @@
       <div class="column is-full-width">
         <h2 class="title is-3">Hardware Experiments</h2>
 
-        <h3 class="title is-4"></h3>
+        <h3 class="title is-4"> 3D Reconstruction</h3>
         <div class="content has-text-justified">
           <p>
             In the hardware experiments, a human pilot attempts to force a collision of the drone, 
@@ -378,12 +377,58 @@
         </div>
         <br/>
 
+        <!-- <h3 class="title is-4"> Safety Layer Experiments</h3>
+        <div class="content has-text-justified">
+          <p>
+            A human pilot purposefully attempts to force a collision between the drone and the environmnet, 
+            but the safety layer consistently maintains a safe distance. 
+          </p>
+          <img src="./static/images/gt_and_renders.png"
+          class="interpolation-image"
+          alt="Interpolate start reference image."/>
+        </div>
+        <br/> -->
+
+        <h3 class="title is-4"> Safety Layer Experiments</h3>
+        <div class="column">
+          <p>
+            A human pilot purposefully attempts to force a collision between the drone and the environmnet, 
+            but the safety layer consistently maintains a safe distance. 
+          </p>
+          <div class="content">        
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/trial2_clip.mov"
+                      type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <br/>
+
+        <div class="column">
+          <div class="content">        
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/trial3_clipped.mov"
+                      type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <br/>
+
+        <div class="column">
+          <div class="content">        
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/videos/trial4_trim.mov"
+                      type="video/mp4">
+            </video>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 </section>
 
-<section class="section">
+<!-- <section class="section">
   <div class="container is-max-desktop">
 
     <div class="columns is-centered">
@@ -417,9 +462,8 @@
               </div>
             </div>
           </div>
-
         </div>
-      </div>
+      </div> -->
 <!-- 
       <div class="column">
         <h2 class="title is-3">Scene II</h2>
@@ -460,8 +504,8 @@
   </div>
 </section>
 
-<section class="section">
-  <div class="container is-max-desktop">
+<!-- <section class="section">
+  <div class="container is-max-desktop"> -->
 
     <!-- <div class="columns is-centered">
       <div class="column">
@@ -498,7 +542,7 @@
         </div>
       </div> -->
 
-      <div class="column">
+      <!-- <div class="column">
         <h2 class="title is-3">Scene II</h2>
         <div class="columns is-centered">
           <div class="column content">
@@ -530,12 +574,11 @@
               </div>
             </div>
           </div>
-
         </div>
-      </div>
-    </div>
+      </div> -->
+    <!-- </div>
   </div>
-</section>
+</section> -->
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
