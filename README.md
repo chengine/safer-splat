@@ -19,22 +19,22 @@ in IEEE Transactions on Robotics (2024)
   <p align="center"> 
     <a href="https://msl.stanford.edu/people/timchen"><strong>Timothy Chen</strong><sup>1</sup></a>
     ·
-    <a href="https://www.its.caltech.edu/~pculbert/"><strong>Aiden Swann</strong><sup>1</sup></a>
+    <a href="https://aidenswann.com/"><strong>Aiden Swann</strong><sup>1</sup></a>
     ·
-    <a href="https://www.its.caltech.edu/~pculbert/"><strong>Javier Yu</strong><sup>1</sup></a>
+    <a href="https://msl.stanford.edu/people/javieryu"><strong>Javier Yu</strong><sup>1</sup></a>
     ·
-    <a href="https://www.its.caltech.edu/~pculbert/"><strong>Ola Shorinwa</strong><sup>1</sup></a>
+    <a href="https://msl.stanford.edu/people/olashorinwa"><strong>Ola Shorinwa</strong><sup>1</sup></a>
     ·
-    <a href="https://www.its.caltech.edu/~pculbert/"><strong>Riku Murai</strong><sup>2</sup></a>
+    <a href="https://rmurai.co.uk/"><strong>Riku Murai</strong><sup>2</sup></a>
     ·
-    <a href="https://www.its.caltech.edu/~pculbert/"><strong>Monroe Kennedy III</strong><sup>1</sup></a>
+    <a href="https://me.stanford.edu/people/monroe-kennedy"><strong>Monroe Kennedy III</strong><sup>1</sup></a>
     ·
     <a href="https://web.stanford.edu/~schwager/"><strong>Mac Schwager</strong><sup>1</sup></a>
   </p>
   <p align="center"><strong><sup>1</sup>Stanford University</strong></p>
   <p align="center"><strong><sup>2</sup>Imperial College London</strong></p>
-  <h2 align="center">IEEE Transactions on Robotics 2024</h2>
-  <h3 align="center"><a href="https://chengine.github.io/safersplat"> Project Page</a> | <a href=>Paper (TR-O)</a> | <a href=>Paper (arXiv)</a> | <a href=>Data</a></h3>
+  <h2 align="center">Submitted ICRA 2025</h2>
+  <h3 align="center"><a href="https://chengine.github.io/safer-splat"> Project Page</a> | <a href=>Paper(TBD)</a> | <a href= "https://www.arxiv.org/abs/2409.09868">(arXiv)</a> | <a href="https://drive.google.com/drive/folders/1xSu7bFW8OBRd9YHfz3LzdBx7pDjUHEPh?usp=sharing">Data</a></h3>
   <div align="center"></div>
 </p>
 <p align="center">
@@ -43,74 +43,70 @@ in IEEE Transactions on Robotics (2024)
   </a>
 </p>
 <h3 align="center">
-A guaranteed safe robot planning pipeline for navigation in NeRFs
+SAFER-Splat (Simultaneous Action Filtering and Environment Reconstruction) is a real-time, scalable, and minimally invasive action filter, based on control barrier functions, for safe robotic navigation in a detailed map constructed at runtime using Gaussian Splatting.
 </h3>
 
 ## About
-CATNIPS reasons about probabilistic safety and planning within Neural Radiance Fields (NeRFs). We relate the NeRF density field to a Poisson Point Process and reason about probabilistic safety with respect to a PPP. Moreover, using safety constraints built from the PPP, we construct a voxel grid representation of navigable space and construct safe corridors through this space. We then solve for a smooth spline path using a quadratic program. The proposed pipeline is real-time. 
+We propose a novel Control Barrier Function (CBF) that not only induces safety with respect to all Gaussian primitives in the scene, but when synthesized into a controller, is capable of processing hundreds of thousands of Gaussians while maintaining a minimal memory footprint and operating at 15 Hz during online Splat training. Of the total compute time, a small fraction of it consumes GPU resources, enabling uninterrupted training. The safety layer is minimally invasive, correcting robot actions only when they are unsafe. To showcase the safety filter, we also introduce SplatBridge, an open-source software package built with ROS for real-time GSplat mapping for robots. We demonstrate the safety and robustness of our pipeline first in simulation, where our method is 20-50x faster, safer, and less conservative than competing methods based on neural radiance fields. Further, we demonstrate simultaneous GSplat mapping and safety filtering on a drone hardware platform using only on-board perception. We verify that under teleoperation a human pilot cannot invoke a collision.
 
-<img src='imgs/teaser.png'/>
+## TODOs
+1. Upload SplatBridge and ROS nodes.
+2. Upload visualizer of trajectories in Nerfstudio viewer.
+3. Provide interactive Colab notebook that allows users to interface with the safety layer on a trained Splat.
 
 ## Dependencies
 This repository is built off of [Nerfstudio](https://github.com/nerfstudio-project/nerfstudio/tree/main). Please first follow the installation instructions there before installing any of the dependencies specifically for this repository. Once you have Nerfstudio installed in your Conda environment, install the following dependencies in that environment.
 
-* [dijkstra3d](https://github.com/seung-lab/dijkstra3d). This library is for planning A*.
-* [cvxpy](https://github.com/cvxpy/cvxpy). This library is for solving the quadratic program. There is an option to use CVXPY itself (slower), or directly use CLARABEL (faster). CLARABEL is already included in CVXPY.
+* [CLARABEL](https://github.com/oxfordcontrol/Clarabel.rs). This library is for solving the quadratic program.
 
 ## Datasets
-Our datasets are hosted on a [Google Drive](https://drive.google.com/drive/folders/11O7o5811NJIaSq5jC7dqwMteKWDD3QtL?usp=sharing). The scenes used in the paper are `flightroom`, `statues`, and `stonehenge`. The training data is in the `colmap` (for statues and flightroom) / `blender` (for stonehenge) folder, while the model is in `nerfacto`.
-
-One way to ensure the repository can see the Nerfstudio model weights is to create a `data` folder and an `outputs` folder in the `catnips` folder. Then place the training data in the `data` folder, and the model weights in the `outputs` folder. 
+Our datasets are hosted on a [Google Drive](https://drive.google.com/drive/folders/1xSu7bFW8OBRd9YHfz3LzdBx7pDjUHEPh?usp=sharing). The scenes used in the paper are `flightgate`, `statues`,  `stonehenge`, `adirondacks`. The training data is in the `data` folder, while the model parameters are in `outputs`. You can drag and drop these folders into your working directory.
 
 Here's an example:
 ```
-catnips
+SAFER-Splat
 ├── data                                                                                                       
-│   └── colmap
-│       └── flightroom
-│           └── images
-│           └── transforms.json                                                                                  
+│   └── flight
+│       └── images
+│       └── transforms.json                                                                                  
 │                                                                                               
 ├──outputs                                                                                                                                                      
-│   └── flightroom                                                                                                  
-│       └── nerfacto                                                                                                                             
-│           └── 2024-07-02_135009                                                                               
+│   └── flight                                                                                                  
+│       └── splatfacto                                                                                                                             
+│           └── 2024-09-12_172434                                                                               
 │               └── nerfstudio_models
 |               └── config.yml
 |               └── dataparser_transforms.json # This file contains the transform that transforms from "Data" frame to "Nerfstudio" frame (which is typically a unit box)
 ├── run.py
 ```
 
-## Running CATNIPS
-After the dependencies and the data is setup, navigate to the catnips folder, and run the script either as VSCode cells or in the command line
+## Running SAFER-Splat
+After the dependencies and the data is setup, run
 ```
 python run.py
 ```
 
-The most important thing is to ensure that the path in NeRFWrapper is pointing to the right model location. For example, for the above example, `NeRFWrapper("./outputs/statues/nerfacto/2024-07-02_135009")`.
+The most important thing is to ensure that the path in NeRFWrapper is pointing to the right model location.
 
-### Replicating the paper results and Baselines
-The baselines (baseline grid and NeRF-Nav) folders are structured the same way as the `catnips` folder. Execute the `run.py`.
+### Variants
+The variants for the distance can be changed.
 
 ### Visualizing the paths
-The outputs of the `run.py` scripts is a json containing a dictionary of paths, represented as waypoints. One way is to visualize them in Open3D and load each path as a PointCloud object. Another is to use an external visualizer like [Blender](https://www.blender.org/). In `catnips/scripts/viz_statistical_traj.py` is a Blender script (i.e. open the script in the Blender Scripting tab), where it will visualize the path if pointed to where the json is. In the same directory as the `path.json`, there is also a mesh of the PURR, as well as the corridors in .ply format.
-
-<img src='imgs/blender.png'/>
+Under construction...
 
 ## Generating your own scenes
-To use your own datasets, simply train a Nerfstudio `nerfacto` model and follow the folder structure as illustrated above. If your images contain pixels that are transparent like in the case of synthetic scenes (i.e. the alpha value is 0), it is recommended to use the `instant-ngp-data` flag (e.g. `ns-train nerfacto --data {DATA} instant-ngp-data`) rather than `blender-data` or the default.
+To use your own datasets, simply train a Nerfstudio `splatfacto` model and follow the folder structure as illustrated above. If your images contain pixels that are transparent like in the case of synthetic scenes (i.e. the alpha value is 0), it is recommended to use the `instant-ngp-data` flag (e.g. `ns-train splatfacto --data {DATA} instant-ngp-data`) rather than `blender-data` or the default.
 
 ## Citation
-If you found CATNIPS useful, consider citing us! Thanks!
+If you found SAFER-Splat useful, consider citing us! Thanks!
 ```
-@article{chen2024catnips,
-  author={Chen, Timothy and Culbertson, Preston and Schwager, Mac},
-  journal={IEEE Transactions on Robotics}, 
-  title={CATNIPS: Collision Avoidance Through Neural Implicit Probabilistic Scenes}, 
-  year={2024},
-  volume={40},
-  number={},
-  pages={2712-2728},
-  keywords={Robots;Collision avoidance;Trajectory;Cameras;Probabilistic logic;Planning;Three-dimensional displays;Collision avoidance;neural radiance fields (NeRFs);robot safety;visual-based navigation},
-  doi={10.1109/TRO.2024.3386394}}
+@misc{chen2024safersplatcontrolbarrierfunction,
+      title={SAFER-Splat: A Control Barrier Function for Safe Navigation with Online Gaussian Splatting Maps}, 
+      author={Timothy Chen and Aiden Swann and Javier Yu and Ola Shorinwa and Riku Murai and Monroe Kennedy III au2 and Mac Schwager},
+      year={2024},
+      eprint={2409.09868},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2409.09868}, 
+}
 ```
