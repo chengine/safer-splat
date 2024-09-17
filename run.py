@@ -19,8 +19,8 @@ beta = 1.
 dt = 0.05
 
 # Methods for the simulation
-n = 5         # number of different configurations
-n_steps = 5   # number of time steps
+n = 100         # number of different configurations
+n_steps = 500   # number of time steps
 
 # Creates a circle for the configuration
 t = np.linspace(0, 2*np.pi, n)
