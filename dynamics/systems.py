@@ -1,5 +1,30 @@
 import torch
 
+def double_integrator_dynamics(x, u):
+    """
+    Returns the dynamics (xdot) for a 3-dimensional double integrator system.
+    Parameters:
+    x (torch.Tensor): State vector [x, y, z, vx, vy, vz]
+    u (torch.Tensor): Input vector [ux, uy, uz]
+
+    Returns:
+    torch.Tensor: The derivative of the state vector [vx, vy, vz, ax, ay, az]
+    """
+    assert x.shape == (6,), "State vector x must be of shape (6,)"
+    assert u.shape == (3,), "Input vector u must be of shape (3,)"
+
+    # The state vector x consists of position (x, y, z) and velocity (vx, vy, vz)
+    pos = x[:3]
+    vel = x[3:]
+
+    # The input vector u consists of accelerations (ax, ay, az)
+    acc = u
+
+    # The derivative of the state vector is the velocity and acceleration
+    xdot = torch.cat((vel, acc))
+
+    return xdot
+
 class SingleIntegrator():
     def __init__(self, device, ndim=3):
         self.ndim = ndim

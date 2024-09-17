@@ -3,8 +3,9 @@ import torch
 import numpy as np
 from scipy import sparse
 import clarabel
-from ellipsoids.polytopes_utils import h_rep_minimal, find_interior
 import time
+
+from ellipsoids.polytopes_utils import h_rep_minimal, find_interior
 
 class CBF():
     def __init__(self, gsplat, dynamics, alpha, beta, radius, distance_type=None):
@@ -138,8 +139,6 @@ class CBF():
             # if not successful, just return the desired control but raise a warning
             print('Solver failed. Returning desired control.')
             u_out = u_des
-
-        #TODO: We might want to try CVXPY as a backup solver if Clarabel fails.
 
         return u_out
 

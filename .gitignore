@@ -3,6 +3,10 @@ geometries
 trajectories
 data
 outputs
+scripts
+results
+trajs
+debug
 !*.imgs
 
 # Images
