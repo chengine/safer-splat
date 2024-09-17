@@ -39,7 +39,7 @@ in IEEE Transactions on Robotics (2024)
 </p>
 <p align="center">
   <a href="">
-    <img src="./imgs/title.png" width="80%">
+    <img src="imgs/title.png" width="80%">
   </a>
 </p>
 <h3 align="center">
