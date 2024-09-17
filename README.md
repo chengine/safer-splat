@@ -34,7 +34,7 @@ in IEEE Transactions on Robotics (2024)
   <p align="center"><strong><sup>1</sup>Stanford University</strong></p>
   <p align="center"><strong><sup>2</sup>Imperial College London</strong></p>
   <h2 align="center">Submitted ICRA 2025</h2>
-  <h3 align="center"><a href="https://chengine.github.io/safer-splat"> Project Page</a> | <a href=>Paper(TBD)</a> | <a href= "https://www.arxiv.org/abs/2409.09868">(arXiv)</a> | <a href="https://drive.google.com/drive/folders/1xSu7bFW8OBRd9YHfz3LzdBx7pDjUHEPh?usp=sharing">Data</a></h3>
+  <h3 align="center"><a href="https://chengine.github.io/safer-splat"> Project Page</a> | <a href=>Paper</a> | <a href= "https://www.arxiv.org/abs/2409.09868">arXiv</a> | <a href="https://drive.google.com/drive/folders/1xSu7bFW8OBRd9YHfz3LzdBx7pDjUHEPh?usp=sharing">Data</a></h3>
   <div align="center"></div>
 </p>
 <p align="center">
