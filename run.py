@@ -56,7 +56,7 @@ t_z = 10*np.linspace(0, 2*np.pi, n)
 # method = 'ball-to-ball-squared'
 # method = 'mahalanobis'
 
-for scene_name in ['old_union']:
+for scene_name in ['stonehenge']:
     for method in ['ball-to-ellipsoid']:
 
         if scene_name == 'old_union':
@@ -100,7 +100,7 @@ for scene_name in ['old_union']:
         tnow = time.time()
         gsplat = GSplatLoader(path_to_gsplat, device)
         print('Time to load GSplat:', time.time() - tnow)
-
+        raise
         if scene_name == 'flight-low-res':
             gsplat_high_res = GSplatLoader(path_to_gsplat_high_res, device)
 
