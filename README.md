@@ -1,14 +1,12 @@
 # SAFER-Splat: Safety with Control Barrier Functions in Online Gaussian Splatting Maps
 Repository for the [SAFER-Splat website](https://chengine.github.io/safer-splat/).
 ```
+
       @misc{chen2024safer-splat,
         title={SAFER-Splat: Safety with Control Barrier Functions in Online Gaussian Splatting Maps}, 
         author={Timothy Chen and Aiden Swann and Javier Yu and Ola Shorinwa and Riku Murai and Monroe Kennedy III and Mac Schwager},
-        year={2024},
-        eprint={},
-        archivePrefix={arXiv},
-        primaryClass={cs.RO},
-        url={}, 
+        journal={arXiv preprint arXiv:2409.09868},
+        year={2024}
         }
 ```
 
